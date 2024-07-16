@@ -16,7 +16,7 @@ from PIL import Image
 from applications.academic_information.models import Student
 from applications.globals.forms import IssueForm, WebFeedbackForm
 from applications.globals.models import (ExtraInfo, Feedback, HoldsDesignation,
-                                         Issue, IssueImage, DepartmentInfo,ModuleAccess)
+                                         Issue, IssueImage, DepartmentInfo)
 from applications.gymkhana.views import coordinator_club
 from applications.placement_cell.forms import (AddAchievement, AddCourse,
                                                AddEducation, AddExperience,
@@ -745,8 +745,7 @@ def dashboard(request):
     hall_warden_user = []
     for warden in hall_wardens:
         hall_warden_user.append(warden.faculty.id.user)
-    print("modules are")
-    print(request.session.get('moduleAccessRights'))
+
     context={
         'notifications':notifs,
         'Curr_desig' : roll_,
@@ -1268,19 +1267,8 @@ def update_global_variable(request):
     if request.method == 'POST':
         selected_option = request.POST.get('dropdown')
         request.session['currentDesignationSelected'] = selected_option
-        module_access = ModuleAccess.objects.filter(designation=selected_option).first()
-        if module_access:
-            access_rights = {}
-    
-            field_names = [field.name for field in ModuleAccess._meta.get_fields() if field.name not in ['id', 'designation']]
-    
-            for field_name in field_names:
-                access_rights[field_name] = getattr(module_access, field_name)
-    
-        request.session['moduleAccessRights'] = access_rights      
-                
         print(selected_option)
         print(request.session['currentDesignationSelected'])
-        return HttpResponseRedirect('/dashboard')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
     # Redirect to home if not a POST request or some issue occurs
     return HttpResponseRedirect(reverse('home'))

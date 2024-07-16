@@ -2,7 +2,7 @@
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from applications.globals.models import (ExtraInfo, Feedback, HoldsDesignation,
-                                         Issue, IssueImage, DepartmentInfo,ModuleAccess)
+                                         Issue, IssueImage, DepartmentInfo)
 from django.shortcuts import get_object_or_404, redirect, render
 
 def user_logged_in_middleware(get_response):
@@ -35,19 +35,7 @@ def user_logged_in_middleware(get_response):
                     print(i)
 
                 request.session['currentDesignationSelected'] = designation[0]
-                request.session['allDesignations'] = designation 
-                first_designation = designation[0]
-                module_access = ModuleAccess.objects.filter(designation=first_designation).first()
-                
-                if module_access:
-                    access_rights = {}
-    
-                    field_names = [field.name for field in ModuleAccess._meta.get_fields() if field.name not in ['id', 'designation']]
-    
-                    for field_name in field_names:
-                        access_rights[field_name] = getattr(module_access, field_name)
-    
-                request.session['moduleAccessRights'] = access_rights           
+                request.session['allDesignations'] = designation               
                 print("logged iN")
                 
             # Set the flag in the session to indicate that the function has bee+n executed
@@ -59,4 +47,4 @@ def user_logged_in_middleware(get_response):
         response = get_response(request)
         return response
     
-    return middleware 
+    return middleware
