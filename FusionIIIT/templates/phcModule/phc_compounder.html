@@ -94,7 +94,7 @@
             {% comment %}The ap `pointment approval tab starts here!{% endcomment %}
             <div class="ui active tab segment" data-tab="fourth" style='height:650px;width:820px;overflow-x:scroll'>
                 {% block patientlog %}
-                    {% include 'phcModule/patientlog.html' with all_hospitals=all_hospitals all_ambulances=all_ambulances appointments_today=appointments_today appointments_approve=appointments_approve %}
+                    {% include 'phcModule/patientlog.html' with live_meds=live_meds %}
                 {% endblock %}
             </div>
             {% comment %}The appointment approval tab ends here!{% endcomment %}
@@ -111,7 +111,7 @@
             {% comment %}The Manage Stocks Form starts here!{% endcomment %}
             <div class="ui tab segment" data-tab="seventh">
                 {% block stock %}
-                    {% include 'phcModule/manage_stock.html' with stocks=stocks inventories=inventories %}
+                    {% include 'phcModule/manage_stock.html' with medicine=medicine stocks=stocks inventories=inventories %}
                 {% endblock %}
             </div>
             {% comment %}The Manage Stocks Form ends here!{% endcomment %}

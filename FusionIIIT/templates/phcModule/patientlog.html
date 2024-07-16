@@ -20,9 +20,9 @@
                 <p id="usr_b"></p>
                 <div class="two fields">
                   <div class="field">
-                      <label>Patient</label>
+                      <label>User</label>
                       <div class="ui fluid large input">
-                          <input placeholder="Patient Id" id="patient_b" name="patient_b" type="text">
+                          <input placeholder="User Id" id="patient_b" name="patient_b" type="text">
                       </div>
                    </div>
 
@@ -37,6 +37,24 @@
                     </div>
                 </div>
 
+                <div>
+                    <input type="radio" id="Dependent" name="is_dependent" value="self" checked onchange="handelchange(this)">
+                    <label>self</label>
+                    <input type="radio" id="Dependent" name="is_dependent" value="dependent" onchange="handelchange(this)">
+                    <label>Dependent</label>
+                </div>
+                <div id="dependent_hide">
+                    <div class="field">
+                        <label>dependent name</label>
+                        <input placeholder="dependent_name" id="dep_name" name="dep_name" type="text">
+                    </div>
+                    <div class="field">
+                        <label>dependent relation</label>
+                        <input placeholder="dependent_relation" id="dep_rel" name="dep_rel" type="text">
+                    </div>
+                </div>
+
+
                 <div class="field">
                     <label>Detail of Disease</label>
                     <textarea name="details" id="details_b" rows="2"></textarea>
@@ -48,7 +66,7 @@
 
                         <select class="ui search fluid dropdown" id="medicine_id_b" name="medicine_id_b" required="true">
                         <option value="" disabled selected>--SELECT--</option>
-                        {% for medicine in stocks %}
+                        {% for medicine in medicine %}  
                         <option value="{{medicine.id}}">{{medicine.medicine_name}}</option>
                         {% endfor %}
                       </select>
@@ -74,7 +92,13 @@
                            <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
 
                        </div>
-                      </div>
+                    </div>
+                    <div class="field">
+                        <label>Stock</label>
+                        <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
+                            <option value="" disabled selected>--SELECT--</option>
+                          </select>
+                     </div>
                      <div class="field">
                          <label><br></label>
                          <input type="button" id="medicine_b" name="medicine_b" value="Add"class="ui small left floated primary button" />
@@ -98,6 +122,9 @@
                         </th>
                         <th class="wide">
                             Times
+                        </th>
+                        <th class="wide">
+                            Stock
                         </th>
                     </tr>
                     </thead>
@@ -126,13 +153,50 @@
             </form></div></div>
             <script src="{% static 'globals/js/jquery.min.js' %}"></script>
             <script type="text/javascript">
+                let dep=document.getElementById("dependent_hide")
+                dep.style.display="none"
+
+                function handelchange(src){
+                    if(src.value=="dependent"){
+                        dep.style.display="block"
+                    }
+                    if(src.value=="self"){
+                        dep.style.display="none"
+                    }
+                }
+
+                  $('#medicine_id_b').change(function(e){
+                    $.ajax({
+                        type:'post',
+                        url:'/healthcenter/compounder/',
+                        data:{
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            medicine_name_for_stock:$("#medicine_id_b").val(),
+                            get_stock:1,
+                        },
+                        success: function(data){
+                            var select_stock = document.getElementById("stock_b");
+                            select_stock.options.length=0
+                            $.each(data.val,function(key,value){
+                                let id=value.id;
+                                let med_name=value.med_name;
+                                let expiry=value.expiry;
+                                let supplier = value.supplier;
+                                let qty = value.quantity
+                                select_stock.options[select_stock.options.length] = new Option(med_name+" "+expiry+" "+supplier+" "+qty+" "+id);
+                            });
+                        }
+                    });
+                  });
+
                   $('#medicine_b').click(function(e){
-                                                        $("#sched_b tr").remove();
                                                         var user = document.getElementById('patient_b').value;
-                                                        var quantity = document.getElementById('quantity_b').value;
                                                         var medicine = document.getElementById('medicine_id_b').value;
+                                                        var quantity = document.getElementById('quantity_b').value;
                                                         var days = document.getElementById('days_b').value;
                                                         var times = document.getElementById('times_b').value;
+                                                        var stock = document.getElementById('stock_b').value;
+                                                        console.log(stock)
                                                         if(user=="" || days=="" || days<0 || times=="" || times<0 || quantity=="" || quantity<0)
                                                         {
                                                         $('#usr_b').html("Enter Valid Information");
@@ -147,21 +211,24 @@
                                                           quantity:$("#quantity_b").val(),
                                                           medicine_name_b:$("#medicine_id_b").val(),
                                                           days:$("#days_b").val(),
-                                                          times:$("#times_b").val()
+                                                          times:$("#times_b").val(),
+                                                          stock:$("#stock_b").val()
                                                         },
                                                           success: function(data){
-                                                              alert("added medicine");
-                                                              document.getElementById("quantity_b").value="";
-                                                              document.getElementById("medicine_id_b").value="";
-                                                              document.getElementById("days_b").value="";
-                                                              document.getElementById("times_b").value="";
                                                               var response=JSON.stringify(data);
-                                                               $('#sched_b').empty();
-                                                              $.each(data, function(key, value) {
-                                                               $('#sched_b').append("<tr><td>" + value.medicine + "</td><td>" +
-                                                               value.quantity + "</td><td>" + value.days + "</td><td>" + value.times + "</td></tr>");
-                                                             });
-                                                        }
+                                                              if(data.status==1){
+                                                                    alert("added medicine");
+                                                                    $('#sched_b').append("<tr><td>" + data.med_name + "</td><td>" +
+                                                                    document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
+                                                               }
+                                                               else{
+                                                                alert("quantity exceeded the amount in selected stock")
+                                                               }
+                                                                document.getElementById("quantity_b").value="";
+                                                                document.getElementById("times_b").value="";
+                                                                document.getElementById("days_b").value="";
+                                                                document.getElementById("medicine_id_b").value="";
+                                                            }
                                                       });
                                                     });
     </script>
@@ -170,6 +237,20 @@
                                                     var user = document.getElementById('patient_b').value;
                                                     var details = document.getElementById('details_b').value;
                                                     var tbl = document.getElementById('sched_b');
+                                                    var medicine=[]
+
+                                                    for(var i=0,row;row=tbl.rows[i];i++){
+                                                        var obj= new Object();
+                                                        obj.med_name=row.cells[0].innerText;
+                                                        obj.quantity=row.cells[1].innerText;
+                                                        obj.Days=row.cells[2].innerText;
+                                                        obj.Times=row.cells[3].innerText;
+                                                        obj.stock=row.cells[4].innerText;
+                                                        medicine[i]=obj;
+                                                        console.log(obj)
+                                                    }
+
+                                                    console.log(medicine)
                                                      
                                                     // Get the file input element
                                                     var fileInput = document.getElementById('file');
@@ -195,6 +276,10 @@
                                                     formData.append('details', $("#details_b").val());
                                                     formData.append('tests', $("#tests_b").val());
                                                     formData.append('prescribe_b', $("#prescribe_b").val());
+                                                    formData.append('is_dependent',$('input[name="is_dependent"]:checked').val());
+                                                    formData.append('dependent_name',$("#dep_name").val());
+                                                    formData.append('dependent_relation',$("#dep_rel").val());
+                                                    formData.append('pre_medicine',JSON.stringify(medicine));
                                                     $.ajax({
                                                       type:'post',
                                                       url:'/healthcenter/compounder/',
@@ -250,20 +335,14 @@
                         Report
                     </td>
 
-                     <td>
-                     <table>
-                                  <tr><td> Medicine</td><td>D</td><td>T</td></tr>
-                      </table>
-                    </td>
-
-                    <td></td>
+                    <td> view</td>
 
                 </tr>
                 </thead>
 
                 <tbody>
                 {% for pre in presc_hist %}
-                <tr>
+                <>
 
                     <td style="white-space:nowrap;">
                         <h4 class="ui image header">
@@ -297,23 +376,16 @@
                             <i class="ui download icon right floated"></i>
                         </a>
                         {% endif %}
+                    </td>   
+                    <td>
+                        <button><a href="{% url 'healthcenter:view_prescription' prescription_id=pre.id %}">view/followup</a></button>
                     </td>
 
-                    <td>
-                     <table>
-                        {% for medicine in medicines_presc %}
-                            {% if medicine.prescription_id.id == pre.id %}
-                                  <tr><td>{{medicine.medicine_id}}</td><td>{{medicine.days}}</td><td>{{medicine.times}}</td></tr>
-                            {% endif %}
-                        {% endfor%}
-                      </table>
-                    </td>
-
-                    <td>
+                    <!-- <td>
 
                         <input type="button" onclick="rem1({{pre.id}})" id="{{pre.id}}" name="cancel" value="Cancel"class="ui red button" />
 
-                    </td>
+                    </td> -->
 
                 </tr>
                 {% endfor %}

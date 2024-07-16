@@ -11,11 +11,11 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from notification.views import  healthcare_center_notif
-from applications.health_center.api.serializers import MedicalReliefSerializer
-from .models import (Ambulance_request, Appointment, Complaint, Constants,
-                     Counter, Doctor,Pathologist, Expiry, Hospital, Hospital_admit,
-                     Medicine, Prescribed_medicine, Prescription, Doctors_Schedule,Pathologist_Schedule,
-                     Stock,SpecialRequest,Announcements,medical_relief,MedicalProfile)
+# from applications.health_center.api.serializers import MedicalReliefSerializer
+from .models import ( Constants,All_Medicine,All_Prescribed_medicine,All_Prescription,Prescription_followup,
+                    Present_Stock,Doctor,Pathologist,
+                    Doctors_Schedule,Pathologist_Schedule,Stock_entry,
+                    medical_relief,MedicalProfile)
 from .utils import datetime_handler, compounder_view_handler, student_view_handler
 from applications.filetracking.sdk.methods import *
 
@@ -75,41 +75,79 @@ def compounder_view(request):
 
         else:
             notifs = request.user.notifications.all()           
-            all_complaints = Complaint.objects.select_related('user_id','user_id__user','user_id__department').all()
-            all_hospitals = Hospital_admit.objects.select_related('user_id','user_id__user','user_id__department','doctor_id').all().order_by('-admission_date')
-            hospitals_list = Hospital.objects.all().order_by('hospital_name')
-            all_ambulances = Ambulance_request.objects.select_related('user_id','user_id__user','user_id__department').all().order_by('-date_request')
-            appointments_today =Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date=datetime.now()).order_by('date')
-            appointments_future=Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date__gt=datetime.now()).order_by('date')
+            # all_complaints = Complaint.objects.select_related('user_id','user_id__user','user_id__department').all()
+            # all_hospitals = Hospital_admit.objects.select_related('user_id','user_id__user','user_id__department','doctor_id').all().order_by('-admission_date')
+            # hospitals_list = Hospital.objects.all().order_by('hospital_name')
+            # all_ambulances = Ambulance_request.objects.select_related('user_id','user_id__user','user_id__department').all().order_by('-date_request')
+            # appointments_today =Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date=datetime.now()).order_by('date')
+            # appointments_future=Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date__gt=datetime.now()).order_by('date')
             users = ExtraInfo.objects.select_related('user','department').filter(user_type='student')
-            stocks = Stock.objects.all()
-           
+            medicine = All_Medicine.objects.all()
             days = Constants.DAYS_OF_WEEK
             schedule=Doctors_Schedule.objects.select_related('doctor_id').all().order_by('doctor_id')
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('pathologist_id')
-            expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
-            live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
-            count=Counter.objects.all()
-            announcements_data=Announcements.objects.all().values()
+            # expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
+            # live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
+            stocks = []
+            for med in medicine:
+                obj={}
+                obj['medicine_name'] = med.medicine_name
+                obj['threshold'] = med.threshold
+                stk=Stock_entry.objects.filter(medicine_id=med)
+                qty=0
+                for s in stk:
+                    if s.Expiry_date >= date.today():
+                        try :
+                            qty+=Present_Stock.objects.get(stock_id=s).quantity
+                        except:
+                            qty+=0
+                obj['quantity']=qty
+                stocks.append(obj)
+
+            exp= Stock_entry.objects.filter(Expiry_date__lt = date.today())
             
-            medicines_presc=Prescribed_medicine.objects.select_related('prescription_id','prescription_id__user_id','prescription_id__user_id__user','prescription_id__user_id__department','prescription_id__doctor_id').all()
-            print(medicines_presc)
-            if count:
-                Counter.objects.all().delete()
-            Counter.objects.create(count=0,fine=0)
-            count=Counter.objects.get()
-            hospitals=Hospital.objects.all()
+            expired=[]
+            for e in exp:
+                obj={}
+                obj['medicine_id']=e.medicine_id
+                obj['Expiry_date']=e.Expiry_date
+                obj['supplier']=e.supplier
+                try:
+                    qty=Present_Stock.objects.get(stock_id=e).quantity
+                except:
+                    qty=0
+                obj['quantity']=qty
+                expired.append(obj)
+            
+            # print("expire:::::")
+            # for exp in exp:
+            #     print(exp)
+            live_meds=[]
+            live=Stock_entry.objects.filter(Expiry_date__gte=date.today())
+            for e in live:
+                obj={}
+                obj['id']=e.id
+                obj['medicine_id']=e.medicine_id
+                obj['Expiry_date']=e.Expiry_date
+                obj['supplier']=e.supplier
+                try:
+                    qty=Present_Stock.objects.get(stock_id=e).quantity
+                except:
+                    qty=0
+                obj['quantity']=qty
+                live_meds.append(obj)
             schedule=Doctors_Schedule.objects.select_related('doctor_id').all().order_by('day','doctor_id')
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('day','pathologist_id')
             
             doctors=Doctor.objects.filter(active=True).order_by('id')
             pathologists=Pathologist.objects.filter(active=True).order_by('id')
-            prescription= Prescription.objects.all()
+            medicine_presc = All_Prescribed_medicine.objects.all()
+            prescription= All_Prescription.objects.all()
             report=[]
             for pre in prescription:
                 dic={}
                 dic['id']=pre.pk
-                dic['user_id']=pre.user_id_id
+                dic['user_id']=pre.user_id
                 dic['doctor_id'] = pre.doctor_id  # Use dot notation
                 dic['date'] = pre.date  # Use dot notation
                 dic['details'] = pre.details  # Use dot notation
@@ -145,11 +183,10 @@ def compounder_view(request):
                       
                         
             return render(request, 'phcModule/phc_compounder.html',
-                          {'days': days, 'users': users, 'count': count,'expired':expired,
-                           'stocks': stocks, 'all_complaints': all_complaints,
-                           'all_hospitals': all_hospitals, 'hospitals':hospitals, 'all_ambulances': all_ambulances,
-                           'appointments_today': appointments_today, 'doctors': doctors, 'pathologists':pathologists, 
-                           'appointments_future': appointments_future, 'schedule': schedule, 'schedule1': schedule1, 'live_meds': live_meds, 'presc_hist': report, 'medicines_presc': medicines_presc, 'hospitals_list': hospitals_list,'inbox_files':inbox,'announcements':announcements_data,})
+                          {'days': days, 'users': users,'expired':expired,
+                           'stocks': stocks,'medicine':medicine,
+                            'doctors': doctors, 'pathologists':pathologists, 
+                        'schedule': schedule, 'schedule1': schedule1, 'live_meds': live_meds, 'presc_hist': report,'inbox_files':inbox,'medicines_presc':medicine_presc})
     else:
         return HttpResponseRedirect("/healthcenter/student")                                      # compounder view ends
 
@@ -632,4 +669,17 @@ def medical_profile(request):
     return render(request, 'health_center/medical_profile.html', {"user_designation":user_info.user_type,
                                                             'medical_profile':medical_profile,
                                                             "request_to":requests_received
-                                                        })  
+                                                        })
+
+@login_required
+def compounder_view_prescription(request,prescription_id):
+    prescription = All_Prescription.objects.get(id=prescription_id)
+    pre_medicine = All_Prescribed_medicine.objects.filter(prescription_id=prescription)
+    doctors=Doctor.objects.filter(active=True).order_by('id')
+    medicine = All_Medicine.objects.all()
+    follow_presc =Prescription_followup.objects.filter(prescription_id=prescription)
+    if request.method == "POST":
+        print("post")
+    return render(request, 'phcModule/phc_compounder_view_prescription.html',{'prescription':prescription,
+                            'pre_medicine':pre_medicine,'doctors':doctors,"medicine":medicine,
+                            "follow_presc":follow_presc})
