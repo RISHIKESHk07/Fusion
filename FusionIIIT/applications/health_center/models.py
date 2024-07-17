@@ -55,12 +55,12 @@ class Pathologist(models.Model):
 #     date = models.DateField(auto_now=True)
 
 class All_Medicine(models.Model):
-    medicine_name = models.CharField(max_length=50,default="NOT_SET")
-    brand_name = models.CharField(max_length=50,default="NOT_SET")
-    constituents = models.TextField(default="NOT_SET")
-    manufacturer_name = models.CharField(max_length=50,default="NOT_SET")
-    threshold = models.IntegerField(default=100)
-    pack_size_label = models.CharField(max_length=50,default="NOT_SET")
+    medicine_name = models.CharField(max_length=1000,default="NOT_SET", null=True)
+    brand_name = models.CharField(max_length=1000,default="NOT_SET", null=True)
+    constituents = models.TextField(default="NOT_SET",  null=True)
+    manufacturer_name = models.CharField(max_length=1000,default="NOT_SET", null=True)
+    threshold = models.IntegerField(default=0, null=True)
+    pack_size_label = models.CharField(max_length=1000,default="NOT_SET", null=True)
 
     def __str__(self):
         return self.medicine_name
@@ -128,7 +128,7 @@ class Prescription_followup(models.Model):
     date = models.DateField()
     test = models.CharField(max_length=200, null=True, blank=True)
     suggestions = models.TextField(null=True)
-    Doctor_id = models.ForeignKey(Doctor,on_delete=models.CASCADE)
+    Doctor_id = models.ForeignKey(Doctor,on_delete=models.CASCADE, null=True, blank=True)
     file_id=models.IntegerField(default=0)
 class All_Prescribed_medicine(models.Model):
     prescription_id = models.ForeignKey(All_Prescription,on_delete=models.CASCADE)

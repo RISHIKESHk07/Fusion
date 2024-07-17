@@ -233,6 +233,7 @@ def compounder_view_handler(request):
             medicine_name=medicine,
             brand_name=brand_name,
             constituents=constituents,
+            threshold=threshold,
             manufacturer_name=manufacture_name,
             pack_size_label=packsize
         )
@@ -544,7 +545,7 @@ def compounder_view_handler(request):
         presc = All_Prescription.objects.get(id=int(pre_id))
 
         doctor_id = request.POST.get('doctor')
-        if doctor_id == "":
+        if doctor_id == "null":
             doctor = None
         else:
             doctor = Doctor.objects.get(id=doctor_id)
