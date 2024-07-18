@@ -37,26 +37,26 @@
                     </div>
                 </div>
 
-                <div>
+                <div style="margin-bottom: 10px;">
                     <input type="radio" id="Dependent" name="is_dependent" value="self" checked onchange="handelchange(this)">
-                    <label>self</label>
+                    <label>Self</label>
                     <input type="radio" id="Dependent" name="is_dependent" value="dependent" onchange="handelchange(this)">
                     <label>Dependent</label>
                 </div>
-                <div id="dependent_hide">
+                <div id="dependent_hide" style="margin-bottom: 10px;">
                     <div class="field">
-                        <label>dependent name</label>
-                        <input placeholder="dependent_name" id="dep_name" name="dep_name" type="text">
+                        <label>Dependent Name</label>
+                        <input placeholder="Name" id="dep_name" name="dep_name" type="text">
                     </div>
                     <div class="field">
-                        <label>dependent relation</label>
-                        <input placeholder="dependent_relation" id="dep_rel" name="dep_rel" type="text">
+                        <label>Dependent Relation</label>
+                        <input placeholder="Relation" id="dep_rel" name="dep_rel" type="text">
                     </div>
                 </div>
 
 
                 <div class="field">
-                    <label>Detail of Disease</label>
+                    <label>Details of Disease</label>
                     <textarea name="details" id="details_b" rows="2"></textarea>
                 </div>
 
@@ -105,8 +105,9 @@
 
                      </div>
                 </div>
-                <table  class="ui very basic collapsing celled small fluid sortable table"
-                       style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                <div id="medicine_schedule_table" style="display: none;">
+                    <table  class="ui very basic collapsing celled small fluid sortable table"
+                    style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                     <thead>
                     <tr>
                         <th class="two wide">
@@ -133,6 +134,7 @@
 
                     </tbody>
                 </table>
+                </div>
                 <div class="field">
                     <label>Tests Suggested</label>
                     <textarea rows="2" id="tests_b" name="extra_meds"></textarea>
@@ -217,6 +219,7 @@
                                                           success: function(data){
                                                               var response=JSON.stringify(data);
                                                               if(data.status==1){
+                                                                    document.getElementById('medicine_schedule_table').style.display = 'block';
                                                                     alert("added medicine");
                                                                     $('#sched_b').append("<tr><td>" + data.med_name + "</td><td>" +
                                                                     document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
@@ -334,15 +337,15 @@
                     <td style="font-weight:bold;color:black;">
                         Report
                     </td>
-
-                    <td> view</td>
-
+                    <td style="font-weight:bold;color:black;">
+                        View
+                    </td>
                 </tr>
                 </thead>
 
                 <tbody>
                 {% for pre in presc_hist %}
-                <>
+                <tr>
 
                     <td style="white-space:nowrap;">
                         <h4 class="ui image header">
@@ -378,7 +381,7 @@
                         {% endif %}
                     </td>   
                     <td>
-                        <button><a href="{% url 'healthcenter:view_prescription' prescription_id=pre.id %}">view/followup</a></button>
+                        <button class="view-followup-btn"><a style="color: white;" href="{% url 'healthcenter:view_prescription' prescription_id=pre.id %}">View/Follow-up</a></button>
                     </td>
 
                     <!-- <td>
@@ -393,6 +396,22 @@
 
                 </tbody>
             </table>
+        
+        <style>
+            .view-followup-btn {
+                font-size: 15px;
+                background-color: #2185D0;
+                border: none;
+                border-radius: 5px;
+                padding: 5px 10px;
+                text-align: center;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .view-followup-btn:hover {
+                background-color: #0b5ed7;
+            }
+        </style>
 
         <script>
 

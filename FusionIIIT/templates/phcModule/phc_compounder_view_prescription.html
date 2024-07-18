@@ -83,11 +83,11 @@
                    {% if prescription.is_dependent == True %}
                    <div id="dependent_hide">
                        <div class="field">
-                           <label>dependent name</label>
+                           <label>Dependent Name</label>
                            <input placeholder="dependent_name" value="{{prescription.dependent_name}}" id="" name="" type="text" readonly>
                        </div>
                        <div class="field">
-                           <label>dependent relation</label>
+                           <label>Dependent Relation</label>
                            <input placeholder="dependent_relation" value="{{prescription.dependent_relation}}" id="" name="" type="text" readonly>
                        </div>
                    </div>
@@ -196,23 +196,20 @@
                        <label>Tests Suggested</label>
                        <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
                    </div>
-                   <div class="field">
                 </form>
                 {% for f_pres in follow_presc %}
+                <hr>
+                <hr>
                 <form>
-                    <div>
-                        followup
-                        <br>
+                    <div style="margin-bottom: 10px;margin-top: 15px;">
+                        <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">Follow-up</span>
+                        <span style="font-size: 13px;">on {{f_pres.date}}</span>
                     </div>
                     <div class="field">
                         <label>Doctor</label>
                         <input placeholder="User Id" value="{{f_pres.Doctor_id}}" id="doctor" name="doctor" type="text" readonly>
                         </select>
                  </div>
-                 <div class="field" >
-                      <label>Date</label>
-                      <input name="date" id="date" value="{{f_pres.date}}" readonly></input>
-                  </div>
                   <div class="field">
                     <label>Detail of Disease</label>
                     <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
@@ -560,10 +557,6 @@
                                                        date="{{prescription.date}}"
                                                        console.log(date)
                                                        var formData = new FormData();
-                                                       if(tbl.rows.length==0){
-                                                       $('#usr_b').html("Please prescribe some medicine!");
-                                                       return false;
-                                                        }
                                                        if(user=="" || details=="")
                                                        {
                                                        $('#usr_b').html("Please enter all the details!");
