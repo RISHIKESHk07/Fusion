@@ -1,4 +1,5 @@
 import json
+from django.http import FileResponse,Http404
 from datetime import date, datetime, timedelta, time
 import xlrd
 import os
@@ -15,7 +16,7 @@ from notification.views import  healthcare_center_notif
 from .models import ( Constants,All_Medicine,All_Prescribed_medicine,All_Prescription,Prescription_followup,
                     Present_Stock,Doctor,Pathologist,
                     Doctors_Schedule,Pathologist_Schedule,Stock_entry,
-                    medical_relief,MedicalProfile)
+                    medical_relief,MedicalProfile,Required_medicine,files)
 from .utils import datetime_handler, compounder_view_handler, student_view_handler
 from applications.filetracking.sdk.methods import *
 
@@ -82,34 +83,35 @@ def compounder_view(request):
             # appointments_today =Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date=datetime.now()).order_by('date')
             # appointments_future=Appointment.objects.select_related('user_id','user_id__user','user_id__department','doctor_id','schedule','schedule__doctor_id').filter(date__gt=datetime.now()).order_by('date')
             users = ExtraInfo.objects.select_related('user','department').filter(user_type='student')
-            medicine = All_Medicine.objects.all()
             days = Constants.DAYS_OF_WEEK
             schedule=Doctors_Schedule.objects.select_related('doctor_id').all().order_by('doctor_id')
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('pathologist_id')
             # expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
             # live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
-            stocks = []
-            for med in medicine:
-                obj={}
-                obj['medicine_name'] = med.medicine_name
-                obj['threshold'] = med.threshold
-                stk=Stock_entry.objects.filter(medicine_id=med)
-                qty=0
-                for s in stk:
-                    if s.Expiry_date >= date.today():
-                        try :
-                            qty+=Present_Stock.objects.get(stock_id=s).quantity
-                        except:
-                            qty+=0
-                obj['quantity']=qty
-                stocks.append(obj)
+            stocks = Required_medicine.objects.all()
+            
+
+            # for med in medicine:
+            #     obj={}
+            #     obj['medicine_name'] = med.medicine_name
+            #     obj['threshold'] = med.threshold
+            #     stk=Stock_entry.objects.filter(medicine_id=med)
+            #     qty=0
+            #     for s in stk:
+            #         if s.Expiry_date >= date.today():
+            #             try :
+            #                 qty+=Present_Stock.objects.get(stock_id=s).quantity
+            #             except:
+            #                 qty+=0
+            #     obj['quantity']=qty
+            #     stocks.append(obj)
 
             exp= Stock_entry.objects.filter(Expiry_date__lt = date.today())
             
             expired=[]
             for e in exp:
                 obj={}
-                obj['medicine_id']=e.medicine_id
+                obj['medicine_id']=e.medicine_id.brand_name
                 obj['Expiry_date']=e.Expiry_date
                 obj['supplier']=e.supplier
                 try:
@@ -127,7 +129,7 @@ def compounder_view(request):
             for e in live:
                 obj={}
                 obj['id']=e.id
-                obj['medicine_id']=e.medicine_id
+                obj['medicine_id']=e.medicine_id.brand_name
                 obj['Expiry_date']=e.Expiry_date
                 obj['supplier']=e.supplier
                 try:
@@ -142,7 +144,7 @@ def compounder_view(request):
             doctors=Doctor.objects.filter(active=True).order_by('id')
             pathologists=Pathologist.objects.filter(active=True).order_by('id')
             medicine_presc = All_Prescribed_medicine.objects.all()
-            prescription= All_Prescription.objects.all()
+            prescription= All_Prescription.objects.all().order_by('-date','-id')
             report=[]
             for pre in prescription:
                 dic={}
@@ -152,10 +154,11 @@ def compounder_view(request):
                 dic['date'] = pre.date  # Use dot notation
                 dic['details'] = pre.details  # Use dot notation
                 dic['test'] = pre.test  # Use dot notation
-                if pre.file_id:
-                    dic['file'] = view_file(file_id=pre.file_id)['upload_file']
-                else:
-                    dic['file']=None 
+                dic['file_id'] = pre.file_id
+                # if pre.file_id:
+                #     dic['file'] = view_file(file_id=pre.file_id)['upload_file']
+                # else:
+                #     dic['file']=None 
                 report.append(dic)
            
             
@@ -174,7 +177,7 @@ def compounder_view(request):
                         dic['uploader']=ib['uploader']                   
                         dic['upload_date']=datetime.fromisoformat(ib['upload_date']).date()                   
                         dic['desc']=mr.description
-                        dic['file']=view_file(file_id=ib['id'])['upload_file']
+                        # dic['file']=view_file(file_id=ib['id'])['upload_file']
                         dic['status']=mr.compounder_forward_flag
                         dic['status1']=mr.acc_admin_forward_flag
                 inbox.append(dic)
@@ -184,7 +187,7 @@ def compounder_view(request):
                         
             return render(request, 'phcModule/phc_compounder.html',
                           {'days': days, 'users': users,'expired':expired,
-                           'stocks': stocks,'medicine':medicine,
+                           'stocks': stocks,
                             'doctors': doctors, 'pathologists':pathologists, 
                         'schedule': schedule, 'schedule1': schedule1, 'live_meds': live_meds, 'presc_hist': report,'inbox_files':inbox,'medicines_presc':medicine_presc})
     else:
@@ -676,10 +679,25 @@ def compounder_view_prescription(request,prescription_id):
     prescription = All_Prescription.objects.get(id=prescription_id)
     pre_medicine = All_Prescribed_medicine.objects.filter(prescription_id=prescription)
     doctors=Doctor.objects.filter(active=True).order_by('id')
-    medicine = All_Medicine.objects.all()
     follow_presc =Prescription_followup.objects.filter(prescription_id=prescription)
     if request.method == "POST":
         print("post")
     return render(request, 'phcModule/phc_compounder_view_prescription.html',{'prescription':prescription,
-                            'pre_medicine':pre_medicine,'doctors':doctors,"medicine":medicine,
+                            'pre_medicine':pre_medicine,'doctors':doctors,
                             "follow_presc":follow_presc})
+
+@login_required
+def view_file(request,file_id):
+    filepath = "generated.pdf"
+
+    file=files.objects.get(id=file_id)
+    f=file.file_data
+    
+    with open("generated.pdf", 'wb+') as destination:   
+        destination.write(f)  
+    
+    pdf = open(filepath, 'rb')
+    response = FileResponse(pdf, content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="generated.pdf"'
+
+    return response

@@ -56,6 +56,7 @@
 
             {% comment %}The ap `pointment approval tab starts here!{% endcomment %}
             <div class="ui active tab segment" style='height:650px;width:820px;overflow-x:scroll'>
+                <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
                 {% block patientlog %}
                 <div class="ui vertical stripe team segment"
                 style="padding-left: 3.5%;
@@ -173,7 +174,7 @@
                         {% if med.prescription_followup_id == None %}
                         <tr>
                             <td>
-                                {{med.medicine_id}}
+                                {{med.medicine_id.brand_name}}
                             </td>
                             <td>
                                 {{med.quantity}}
@@ -196,11 +197,19 @@
                        <label>Tests Suggested</label>
                        <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
                    </div>
+                   {% if prescription.file_id != 0 %}
+                    <div class="field">
+                        <label><br></label>
+                        <input type="button" id="{{prescription.file_id}}" onclick="view_report(this)" value="view report"class="ui small left floated primary button" />
+                    </div>
+                    {% endif %}
                 </form>
+                </div>
+                <br>
                 {% for f_pres in follow_presc %}
                 <hr>
                 <hr>
-                <form>
+                <form  class="ui form">
                     <div style="margin-bottom: 10px;margin-top: 15px;">
                         <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">Follow-up</span>
                         <span style="font-size: 13px;">on {{f_pres.date}}</span>
@@ -214,6 +223,56 @@
                     <label>Detail of Disease</label>
                     <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
                 </div>
+                revoked medicine in this prescription followup
+                <table  class="ui very basic collapsing celled small fluid sortable table"
+                          style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                       <thead>
+                       <tr>
+                           <th class="two wide">
+                               Medicine
+                           </th>
+   
+                           <th class="two wide" >
+                               Quantity
+                           </th>
+   
+                           <th class="wide">
+                               Days
+                           </th>
+                           <th class="wide">
+                               Times
+                           </th>
+                           <th class="wide">
+                               Stock
+                           </th>
+                       </tr>
+                       </thead>
+   
+                       <tbody id="">
+                        {% for med in pre_medicine %}
+                        {% if med.revoked == True and med.revoked_prescription.id == f_pres.id %}
+                        <tr>
+                            <td>
+                                {{med.medicine_id.brand_name}}
+                            </td>
+                            <td>
+                                {{med.quantity}}
+                            </td>
+                            <td>
+                                {{med.days}}
+                            </td>
+                            <td>
+                                {{med.times}}
+                            </td>
+                            <td>
+                                {{med.stock}}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                       </tbody>
+                   </table>
+                   medicine prescribed in this followup
                 <table  class="ui very basic collapsing celled small fluid sortable table"
                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                        <thead>
@@ -243,7 +302,7 @@
                         {% if med.prescription_followup_id.id == f_pres.id %}
                         <tr>
                             <td>
-                                {{med.medicine_id}}
+                                {{med.medicine_id.brand_name}}
                             </td>
                             <td>
                                 {{med.quantity}}
@@ -266,6 +325,12 @@
                     <label>Tests Suggested</label>
                     <textarea rows="2" id="" name="" readonly>{{f_pres.test}}</textarea>
                 </div>
+                {% if f_pres.file_id != 0 %}
+                <div class="field">
+                    <label><br></label>
+                    <input type="button" id="{{f_pres.file_id}}" onclick="view_report(this)" value="view report"class="ui small left floated primary button" />
+                </div>
+                {% endif %}
 
                 </form>
                 <br>
@@ -330,7 +395,7 @@
                                     {{med.id}}
                                 </td>
                                 <td>
-                                    {{med.medicine_id}}
+                                    {{med.medicine_id.brand_name}}
                                 </td>
                                 <td>
                                     {{med.quantity}}
@@ -356,16 +421,14 @@
                     </table>
  
                     <div class="two fields">
-                      <div class="field">
-                          <label>Medicine</label>
-    
-                            <select class="ui search fluid dropdown" id="medicine_id_b" name="medicine_id_b" required="true">
-                            <option value="" disabled selected>--SELECT--</option>
-                            {% for medicine in medicine %}  
-                            <option value="{{medicine.id}}">{{medicine.medicine_name}}</option>
-                            {% endfor %}
-                          </select>
-                      </div>
+                        <div class="field" >
+                            <label >Medicine</label>
+      
+                              <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list">
+                              <datalist id="med_list">
+                              </datalist>
+                            </input>
+                        </div>
     
                        <div class="field">
                          <label>Quantity</label>
@@ -432,6 +495,12 @@
                         <textarea rows="2" id="tests_b" name="extra_meds" ></textarea>
                     </div>
                     <div class="field">
+                        <label for="file">Report</label>
+                        <div class="ui fluid input">
+                            <input type="file" name="file" id="file">
+                        </div>
+                    </div>
+                    <div class="field">
                         <label><br></label>
                         <input type="button" id="prescribe_b" name="prescribe"  value="Submit"class="ui large right floated primary button" />
                     </div>
@@ -449,28 +518,47 @@
                         button.style.display="none"
                     })
                      $('#medicine_id_b').change(function(e){
-                       $.ajax({
-                           type:'post',
-                           url:'/healthcenter/compounder/',
-                           data:{
-                               csrfmiddlewaretoken: '{{ csrf_token }}',
-                               medicine_name_for_stock:$("#medicine_id_b").val(),
-                               get_stock:1,
-                           },
-                           success: function(data){
-                               var select_stock = document.getElementById("stock_b");
-                               select_stock.options.length=0
-                               $.each(data.val,function(key,value){
-                                   let id=value.id;
-                                   let med_name=value.med_name;
-                                   let expiry=value.expiry;
-                                   let supplier = value.supplier;
-                                   let qty = value.quantity
-                                   select_stock.options[select_stock.options.length] = new Option(med_name+" "+expiry+" "+supplier+" "+qty+" "+id);
-                               });
-                           }
-                       });
-                     });
+                        name=document.getElementById('medicine_id_b').value;
+                    if(name.length>2){
+                        $.ajax({
+                        type:'post',
+                        url:'/healthcenter/compounder/',
+                        data:{
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            medicine_name_for_stock:$("#medicine_id_b").val(),
+                            get_stock:1,
+                        },
+                        success: function(data){
+                            var select_stock = document.getElementById("stock_b");
+                            select_stock.options.length=0
+                            var med_list = document.getElementById("med_list");
+                            med_list.innerHTML="";
+                            $.each(data.sim,function(key,value){
+                                var new_option = document.createElement('option')
+                                new_option.value = value.brand_name +","+value.id
+                                med_list.appendChild(new_option)
+                            })
+                            $.each(data.val,function(key,value){
+                                let id=value.id;
+                                let med_name=value.brand_name;
+                                let expiry=value.expiry;
+                                let supplier = value.supplier;
+                                let qty = value.quantity
+                                select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
+                            });
+                        }
+                    });
+                    }
+                    });
+
+                    function view_report(f){
+                        console.log(f.id)
+                        var pk=f.id
+                        alert('view_report')
+                        var url= `{% url 'healthcenter:view_file' file_id='0' %}`
+                        var newurl=url.replace('0',f.id)
+                        window.open(newurl,"_blank")
+                     }
    
                      $('#medicine_b').click(function(e){
                                                            var medicine = document.getElementById('medicine_id_b').value;
@@ -503,14 +591,17 @@
                                                                        $('#sched_b').append("<tr><td>" + data.med_name + "</td><td>" +
                                                                        document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
                                                                   }
-                                                                  else{
-                                                                   alert("quantity exceeded the amount in selected stock")
-                                                                  }
-                                                                   document.getElementById("quantity_b").value="";
-                                                                   document.getElementById("times_b").value="";
-                                                                   document.getElementById("days_b").value="";
-                                                                   document.getElementById("medicine_id_b").value="";
-                                                               }
+                                                                else if(data.status==-1){
+                                                                    alert("failed to add medcine")
+                                                                }
+                                                                else{
+                                                                    alert('mot enough medicine in stock')
+                                                                }
+                                                                    document.getElementById("quantity_b").value="";
+                                                                    document.getElementById("times_b").value="";
+                                                                    document.getElementById("days_b").value="";
+                                                                    document.getElementById("medicine_id_b").value="";
+                                                                }
                                                          });
                                                        });
        </script>
@@ -550,9 +641,10 @@
    
                                                        console.log(medicine)
                                                         
-                                                       // Get the file input element                                                       
+                                                       // Get the file input element     
+                                                       var fileInput = document.getElementById('file');                                                  
                                                        // Get the files from the input element
-                                                       
+                                                       var file = fileInput.files[0];
                                                        // Create a new FormData object
                                                        date="{{prescription.date}}"
                                                        console.log(date)
@@ -563,6 +655,7 @@
                                                        return false;
                                                        }
                                                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                                                       formData.append('file', file);
                                                        formData.append('pre_id',"{{prescription.id}}");
                                                        formData.append('doctor', $("#doctor_b").val());
                                                        formData.append('details', $("#details_b").val());

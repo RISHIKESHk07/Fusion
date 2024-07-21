@@ -31,15 +31,14 @@
       <p id="medicine_add"></p>
         <div class="ui vertical segment">
             <form class="ui form" method="POST" style="padding: 8px; padding-left: 24px; padding-right: 24px;">{% csrf_token %}
-                  <div class="field">
-                        <label>Medicine</label>
-                        <select class="ui search fluid dropdown" id="medicine_d" name="medicine_d" required="true">
-                        <option value="" disabled selected>--SELECT--</option>
-                          {% for med in medicine %}
-                          <option value="{{med.id}}">{{med.medicine_name}}</option>
-                          {% endfor %}
-                        </select>
-                    </div>
+                <div class="field" >
+                    <label >brand_name</label>
+
+                      <input type="text" class="" id="brand_name_a" name="brand_name_a" list="med_list_a">
+                      <datalist id="med_list_a">
+                      </datalist>
+                    </input>
+                </div>
                     <div class="field">
                         <label>Quantity</label>
                         <div class="ui fluid large input">
@@ -65,6 +64,30 @@
                         </div>
                     </div>
                     <div class="field">
+                        <label>medicine name</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="BrandName" id="medicine_name_a" name="medicine_name" type="text" readonly>
+                        </div>
+                    </div> 
+                    <div class="field">
+                        <label>Constituents</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="Constituents" id="constituents_a" name="constituents" type="text" readonly>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>manufacture name</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="manufacturerName" id="manufacture_name_a" name="manufacture_name" type="text" readonly>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>pack size label</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="Pack_size" id="packsize_a" name="packsize" type="text" readonly>
+                        </div>
+                    </div>                     
+                    <div class="field">
                     <label><br></label>
     
                     <div >
@@ -75,27 +98,53 @@
             </form>
             <script type="text/javascript">
 
-            // $('#medicine_d').change(function()
-            //       {
-            //           document.getElementById("thr").innerHTML = "";
-            //           $.ajax({
-            //           type:'post',
-            //           url:'/healthcenter/compounder/',
-            //           data: {
-            //           csrfmiddlewaretoken: '{{ csrf_token }}',
-            //           medicine:$("#medicine_a").val(),
-            //           },
-            //           success: function(data){
-            //             $('#thr').append("Current Threshold: "+data.thresh);
+            $('#brand_name_a').change(function()
+                  {
+                   var name=document.getElementById('brand_name_a').value;
+                    if(name.length>2){
+                        $.ajax({
+                        type:'post',
+                        url:'/healthcenter/compounder/',
+                        data:{
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            medicine_name_for_stock:$("#brand_name_a").val(),
+                            get_stock:1,
+                        },
+                        success: function(data){
+                            var med_list_a = document.getElementById("med_list_a");
+                            med_list_a.innerHTML="";
+                            $.each(data.sim,function(key,value){
+                                var new_option = document.createElement('option')
+                                new_option.value = value.brand_name + ","+ value.id
+                                med_list_a.appendChild(new_option)
+                            })
+                            if(data.status==2){
+                                console.log(data.sim)
+                                var brand_name_a = document.getElementById("medicine_name_a")
+                                brand_name_a.value = data.sim[0].medicine_name
+                                
+                                var constituents_a =document.getElementById('constituents_a')
+                                if(data.sim[0].constituents == null) constituents_a.value=""
+                                else constituents_a.value = data.sim[0].constituents
 
-            //                                   }
-            //        });
-            //      });
+                                var manufacturer_name_a =document.getElementById("manufacture_name_a")
+                                if(data.sim[0].manufacturer_name == null) manufacturer_name_a.value=""
+                                else manufacturer_name_a.value = data.sim[0].manufacturer_name
+                                
+
+                                var pack_size_label_a = document.getElementById('packsize_a')
+                                if(data.sim[0].pack_size_label == null) pack_size_label_a.value=""
+                                else pack_size_label_a.value = data.sim[0].pack_size_label
+                            }
+                        }
+                    });
+                    }
+                 });
 
 
               $('#add_stock').click(function(e)
                                                   {
-                                                    var medicine = document.getElementById('medicine_d').value;
+                                                    var medicine = document.getElementById('brand_name_a').value;
                                                     var qty = document.getElementById('quantity_a').value;
                                                     // var thresh = document.getElementById('thresh_a').value;
                                                     var supplier = document.getElementById('supplier').value;
@@ -124,25 +173,28 @@
                                                       url:'/healthcenter/compounder/',
                                                       data: {
                                                       csrfmiddlewaretoken: '{{ csrf_token }}',
-                                                      medicine_id:$("#medicine_d").val(),
+                                                      medicine_id:$("#brand_name_a").val(),
                                                       quantity:$("#quantity_a").val(),
-                                                    //   threshold_a:$("#thresh_a").val(),
                                                       supplier:$("#supplier").val(),
                                                       expiry_date:$("#new_expiry_date").val(),
                                                       add_stock:$("#add_stock").val()
 
                                                     },
                                                       success: function(data){
-                                                      alert("added stock ");
-
-                                                $('#live_stock').find('tbody');
+                                                        if(data.status == 1){
+                                                            alert("added stock ");
+                                                            $('#live_stock').find('tbody');
                         $('#live_stock tbody').append("<tr><td>" + data.medicine + "</td><td>" + data.supplier + "</td><td>" + data.expiry_date  + "</td><td>" + data.quantity + "</td></tr>");
-                                                      document.getElementById("medicine_a").value="";
+                                                      document.getElementById("brand_name_a").value="";
                                                       document.getElementById('quantity_a').value="";
                                                       document.getElementById('supplier').value="";
                                                       document.getElementById('new_expiry_date').value="";
                                                       $('#medicine_add').html('');
                                                       window.location.reload();
+                                                        }
+                                                        else{
+                                                            alert("error while adding stock")
+                                                        }
 
                                                     }
                                                   });
@@ -214,7 +266,7 @@
                 <div class="field">
                     <label>pack size label</label>
                     <div class="ui fluid large input">
-                        <input placeholder="Pack_size" id="packsize" name="packsize" type="number">
+                        <input placeholder="Pack_size" id="packsize" name="packsize" type="text">
                     </div>
                 </div>                             
                 <div class="field">
@@ -515,7 +567,7 @@
                     <tr>
 
                         <td>
-                           {{stock.medicine_name}}
+                           {{stock.medicine_id.brand_name}}
                         </td>
 
                         <td>
@@ -533,20 +585,19 @@
         </div>
         {% comment %}the view inventory tab ends here {% endcomment %}
 
-        {% comment %}the add stock tab starts here{% endcomment %}
+        {% comment %}the edit threshold tab starts here{% endcomment %}
     <div class="ui tab" data-tab="EditThreshold">
       <p id="change_threshold"></p>
         <div class="ui vertical segment">
             <form class="ui form" method="POST" style="padding: 8px; padding-left: 24px; padding-right: 24px;">{% csrf_token %}
-                  <div class="field">
-                        <label>Medicine</label>
-                        <select class="ui search fluid dropdown" id="medicine_a" name="medicine_a" required="true">
-                        <option value="" disabled selected>--SELECT--</option>
-                          {% for med in medicine %}
-                          <option value="{{med.id}}">{{med.medicine_name}}</option>
-                          {% endfor %}
-                        </select>
-                    </div>
+                <div class="field" >
+                    <label >Brand Name</label>
+
+                      <input type="text" class="" id="brand_name_b" name="brand_name_b" list="med_list_b">
+                      <datalist id="med_list_b">
+                      </datalist>
+                    </input>
+                </div>
                     <div class="field">
                         <label>Threshold</label> <p id="thr"></p>
                         <div class="ui fluid large input">
@@ -564,27 +615,47 @@
             </form>
             <script type="text/javascript">
 
-            $('#medicine_a').change(function()
-                  {
+            $('#brand_name_b').change(function()
+                  { 
+                    var name=document.getElementById('brand_name_b').value;
+                    if(name.length>2){
+                        $.ajax({
+                        type:'post',
+                        url:'/healthcenter/compounder/',
+                        data:{
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            medicine_name_for_stock:$("#brand_name_b").val(),
+                            get_stock:1,
+                        },
+                        success: function(data){
+                            var med_list_b = document.getElementById("med_list_b");
+                            med_list_b.innerHTML="";
+                            $.each(data.sim,function(key,value){
+                                var new_option = document.createElement('option')
+                                new_option.value = value.brand_name
+                                med_list_b.appendChild(new_option)
+                            })
+                        }
+                    });
+                    }
                       document.getElementById("thr").innerHTML = "";
                       $.ajax({
                       type:'post',
                       url:'/healthcenter/compounder/',
                       data: {
                       csrfmiddlewaretoken: '{{ csrf_token }}',
-                      medicine:$("#medicine_a").val(),
+                      medicine:$("#brand_name_b").val(),
                       },
                       success: function(data){
                         $('#thr').append("Current Threshold: "+data.thresh);
-
-                                              }
+                        }
                    });
                  });
 
 
               $('#edit_threshold').click(function(e)
                                                   {
-                                                    var medicine = document.getElementById('medicine_a').value;
+                                                    var medicine = document.getElementById('brand_name_b').value;
                                                     var thr = document.getElementById('thresh_a').value;
                                                     console.log(thr)
                                                     // var thresh = document.getElementById('thresh_a').value;
@@ -600,18 +671,22 @@
                                                       url:'/healthcenter/compounder/',
                                                       data: {
                                                       csrfmiddlewaretoken: '{{ csrf_token }}',
-                                                      medicine_id:$("#medicine_a").val(),
+                                                      medicine_id:$("#brand_name_b").val(),
                                                       threshold:$("#thresh_a").val(),
                                                       edit_threshold:$("#edit_threshold").val()
                                                     },
                                                       success: function(data){
-                                                      alert("edited threshold");
+                                                     if(data.status==1){
+                                                        alert("edited threshold");
 
-                                                      document.getElementById("medicine_a").value="";
-                                                      document.getElementById('thr').innerHTML="";
-                                                      document.getElementById.value="";
-                                                      $('#change_threshold').html('');
-                                                      window.location.reload();
+                                                        document.getElementById("brand_name_b").value="";
+                                                        document.getElementById('thr').innerHTML="";
+                                                        document.getElementById("thresh_a").value="";
+                                                        window.location.reload();
+                                                     }
+                                                     else{
+                                                        alert("failed to edit threshold")
+                                                     }
 
                                                     }
                                                   });
@@ -624,6 +699,6 @@
         <br>
         <div class="extra segment"></div>
     </div>
-    {% comment %}the add stock tab ends here {% endcomment %}
+    {% comment %}the edit threshold tab ends here {% endcomment %}
 
 {% endblock %}

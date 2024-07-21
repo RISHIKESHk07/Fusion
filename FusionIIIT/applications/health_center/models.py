@@ -75,6 +75,12 @@ class Stock_entry(models.Model):
 
     def __str__(self):
         return self.medicine_id.medicine_name
+    
+
+class Required_medicine(models.Model):
+    medicine_id = models.ForeignKey(All_Medicine,on_delete = models.CASCADE)
+    quantity = models.IntegerField()
+    threshold = models.IntegerField()
 
 class Present_Stock(models.Model):
     quantity = models.IntegerField(default=0)
@@ -140,11 +146,13 @@ class All_Prescribed_medicine(models.Model):
     times = models.IntegerField(default=0)
     revoked = models.BooleanField(default=False)
     revoked_date = models.DateField(null=True)
+    revoked_prescription = models.ForeignKey(Prescription_followup,on_delete=models.CASCADE,null=True,related_name="revoked_priscription")
 
     def __str__(self):
         return self.medicine_id.medicine_name
 
-
+class files(models.Model):
+    file_data = models.BinaryField()
 
 class medical_relief(models.Model):
     description = models.CharField(max_length=200)

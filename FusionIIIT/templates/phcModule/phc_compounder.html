@@ -109,7 +109,7 @@
 
 
             {% comment %}The Manage Stocks Form starts here!{% endcomment %}
-            <div class="ui tab segment" data-tab="seventh" style="overflow-x: scroll;">
+            <div class="ui tab segment" data-tab="seventh" style="height:650px;width:820px;overflow-x: scroll;">
                 {% block stock %}
                     {% include 'phcModule/manage_stock.html' with medicine=medicine stocks=stocks inventories=inventories %}
                 {% endblock %}

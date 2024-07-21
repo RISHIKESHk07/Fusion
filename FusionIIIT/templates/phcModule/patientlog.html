@@ -61,15 +61,13 @@
                 </div>
 
                 <div class="two fields">
-                  <div class="field">
-                      <label>Medicine</label>
+                  <div class="field" >
+                      <label >Medicine</label>
 
-                        <select class="ui search fluid dropdown" id="medicine_id_b" name="medicine_id_b" required="true">
-                        <option value="" disabled selected>--SELECT--</option>
-                        {% for medicine in medicine %}  
-                        <option value="{{medicine.id}}">{{medicine.medicine_name}}</option>
-                        {% endfor %}
-                      </select>
+                        <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list">
+                        <datalist id="med_list">
+                        </datalist>
+                      </input>
                   </div>
 
                    <div class="field">
@@ -94,7 +92,7 @@
                        </div>
                     </div>
                     <div class="field">
-                        <label>Stock</label>
+                        <label >Stock</label>
                         <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
                             <option value="" disabled selected>--SELECT--</option>
                           </select>
@@ -168,7 +166,9 @@
                 }
 
                   $('#medicine_id_b').change(function(e){
-                    $.ajax({
+                    name=document.getElementById('medicine_id_b').value;
+                    if(name.length>2){
+                        $.ajax({
                         type:'post',
                         url:'/healthcenter/compounder/',
                         data:{
@@ -179,16 +179,24 @@
                         success: function(data){
                             var select_stock = document.getElementById("stock_b");
                             select_stock.options.length=0
+                            var med_list = document.getElementById("med_list");
+                            med_list.innerHTML="";
+                            $.each(data.sim,function(key,value){
+                                var new_option = document.createElement('option')
+                                new_option.value = value.brand_name +","+value.id
+                                med_list.appendChild(new_option)
+                            })
                             $.each(data.val,function(key,value){
                                 let id=value.id;
-                                let med_name=value.med_name;
+                                let med_name=value.brand_name;
                                 let expiry=value.expiry;
                                 let supplier = value.supplier;
                                 let qty = value.quantity
-                                select_stock.options[select_stock.options.length] = new Option(med_name+" "+expiry+" "+supplier+" "+qty+" "+id);
+                                select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
                             });
                         }
                     });
+                    }
                   });
 
                   $('#medicine_b').click(function(e){
@@ -224,8 +232,11 @@
                                                                     $('#sched_b').append("<tr><td>" + data.med_name + "</td><td>" +
                                                                     document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
                                                                }
+                                                               else if(data.status==-1){
+                                                                alert("failed to add medcine")
+                                                               }
                                                                else{
-                                                                alert("quantity exceeded the amount in selected stock")
+                                                                alert('mot enough medicine in stock')
                                                                }
                                                                 document.getElementById("quantity_b").value="";
                                                                 document.getElementById("times_b").value="";
@@ -244,7 +255,7 @@
 
                                                     for(var i=0,row;row=tbl.rows[i];i++){
                                                         var obj= new Object();
-                                                        obj.med_name=row.cells[0].innerText;
+                                                        obj.brand_name=row.cells[0].innerText;
                                                         obj.quantity=row.cells[1].innerText;
                                                         obj.Days=row.cells[2].innerText;
                                                         obj.Times=row.cells[3].innerText;
@@ -374,11 +385,11 @@
                         {{pre.test}}
                     </td>
                     <td style="white-space:nowrap;">
-                        {% if pre.file %}
+                        <!-- {% if pre.file %}
                         <a href="{{ pre.file }}" download>
                             <i class="ui download icon right floated"></i>
                         </a>
-                        {% endif %}
+                        {% endif %} -->
                     </td>   
                     <td>
                         <button class="view-followup-btn"><a style="color: white;" href="{% url 'healthcenter:view_prescription' prescription_id=pre.id %}">View/Follow-up</a></button>
@@ -399,7 +410,7 @@
         
         <style>
             .view-followup-btn {
-                font-size: 15px;
+                font-size: 13px;
                 background-color: #2185D0;
                 border: none;
                 border-radius: 5px;
