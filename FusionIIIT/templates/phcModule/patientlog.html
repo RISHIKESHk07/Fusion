@@ -60,37 +60,55 @@
                     <textarea name="details" id="details_b" rows="2"></textarea>
                 </div>
 
-                <div class="two fields">
-                  <div class="field" >
-                      <label >Medicine</label>
-
-                        <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list">
+                <div class="flex flex-col">
+                  <div class="field">
+                        <label>Medicine</label>
+                            <div class="flex" style="gap: 10px;">
+                                <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list" />
+                                <input type="button" id="medicine_search_b" name="medicine_search_b" value="Search" class="ui small primary button" />
+                            </div>
                         <datalist id="med_list">
                         </datalist>
-                      </input>
                   </div>
 
-                   <div class="field">
-                     <label>Quantity</label>
-                     <div class="ui fluid large input">
-                         <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
-
-                     </div>
-                  </div>
+                  <div class="flex">
                     <div class="field">
-                      <label>No of days</label>
-                      <div class="ui fluid large input">
-                          <input placeholder="No of days" id="days_b" name="days_b" type="number">
-
-                      </div>
+                        <label>Manufacturer Name</label>
+                        <div>
+                            <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;">
+                        </div>
                      </div>
                      <div class="field">
-                       <label>Times per day</label>
-                       <div class="ui fluid large input">
-                           <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
+                        <label>Pack Size</label>
+                        <div>
+                            <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;">
+                        </div>
+                     </div>
+                  </div>
 
+                   <div class="flex w-full">
+                    <div class="field">
+                        <label>Quantity</label>
+                        <div class="">
+                            <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
+   
+                        </div>
+                     </div>
+                       <div class="field">
+                         <label>No of days</label>
+                         <div class="">
+                             <input placeholder="No of days" id="days_b" name="days_b" type="number">
+   
+                         </div>
+                        </div>
+                        <div class="field">
+                          <label>Times per day</label>
+                          <div class="">
+                              <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
+   
+                          </div>
                        </div>
-                    </div>
+                   </div>
                     <div class="field">
                         <label >Stock</label>
                         <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
@@ -99,8 +117,7 @@
                      </div>
                      <div class="field">
                          <label><br></label>
-                         <input type="button" id="medicine_b" name="medicine_b" value="Add"class="ui small left floated primary button" />
-
+                         <input type="button" id="medicine_b" name="medicine_b" value="Add" class="ui medium right floated primary button" />
                      </div>
                 </div>
                 <div id="medicine_schedule_table" style="display: none;">
@@ -165,7 +182,7 @@
                     }
                 }
 
-                  $('#medicine_id_b').change(function(e){
+                  $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
                         $.ajax({
@@ -421,6 +438,19 @@
             }
             .view-followup-btn:hover {
                 background-color: #0b5ed7;
+            }
+            .w-fill {
+                width: 100%;
+            }
+            .flex {
+                display: flex;
+                justify-content: space-between;
+            }
+            .flex-col {
+                flex-direction: column;
+            }
+            .bbx {
+                border: 1px solid red;
             }
         </style>
 
