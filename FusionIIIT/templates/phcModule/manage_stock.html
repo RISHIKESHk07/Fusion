@@ -91,12 +91,65 @@
                     <label><br></label>
     
                     <div >
-                      <input type="button" id="add_stock" name="add_stock"  value="Submit"class="ui large right floated primary button" />
+                      <input type="button" id="add_stock" name="add_stock"  value="Submit" class="ui large right floated primary button" />
                     </div>
 
                    </div>
             </form>
+            or insert data using excel
+            <form class="ui form" method="POST">{% csrf_token %}
+                <div class="field">
+                    <label for="file">Report</label>
+                    <div class="ui fluid input">
+                        <input type="file" name="file" id="file_excel_add_stock" accept=".xls,.xlsx">
+                    </div>
+                </div>
+                <div >
+                    <input type="button" id="download_example_add_stock" name="download_example"  value="download_example" class="ui large right floated primary button" />
+                  </div>
+                <div >
+                  <input type="button" id="add_stock_excel" name="add_stock_excel"  value="Submit"class="ui large right floated primary button" />
+                </div>
+            </form>
             <script type="text/javascript">
+                 $('#download_example_add_stock').click(function(e){
+                    alert('view_report')
+                    var url= `{% url 'healthcenter:view_file' file_id='0' %}`
+                    var newurl=url.replace('0',-2)
+                    window.open(newurl,"_blank")
+                })
+
+              $('#add_stock_excel').click(function(e){
+                 // Get the file input element
+                    var fileInput = document.getElementById('file_excel_add_stock');
+                    var file = fileInput.files[0];
+                    
+                    if(file == undefined){
+                        alert('add a file')
+                    }
+                    else{
+                        var formData = new FormData();
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        formData.append('file', file);
+                        formData.append('add_stock_excel',$("#add_medicine_excel").val());
+                        $.ajax({
+                            type:'post',
+                            url:'/healthcenter/compounder/',
+                            data:formData,
+                            processData: false,
+                            contentType: false,
+                            success : function(data){
+                                if(data.status == 1){
+                                    alert('data inserted successfully')
+                                    window.location.reload()
+                                }
+                                else{
+                                    alert('error while inserting')
+                                }
+                            }
+                        })
+                    }
+              })
 
             $('#brand_name_a').change(function()
                   {
@@ -278,7 +331,60 @@
 
                </div>
             </form>
+            or insert data using excel
+            <form class="ui form" method="POST">{% csrf_token %}
+                <div class="field">
+                    <label for="file">Report</label>
+                    <div class="ui fluid input">
+                        <input type="file" name="file" id="file_excel" accept=".xls,.xlsx">
+                    </div>
+                </div>
+                <div >
+                    <input type="button" id="download_example" name="download_example"  value="download_example" class="ui large right floated primary button" />
+                  </div>
+                <div >
+                  <input type="button" id="add_medicine_excel" name="add_medicine_excel"  value="Submit"class="ui large right floated primary button" />
+                </div>
+            </form>
             <script type="text/javascript">
+                $('#download_example').click(function(e){
+                    alert('view_report')
+                    var url= `{% url 'healthcenter:view_file' file_id='0' %}`
+                    var newurl=url.replace('0',-1)
+                    window.open(newurl,"_blank")
+                })
+
+              $('#add_medicine_excel').click(function(e){
+                 // Get the file input element
+                    var fileInput = document.getElementById('file_excel');
+                    var file = fileInput.files[0];
+                    
+                    if(file == undefined){
+                        alert('add a file')
+                    }
+                    else{
+                        var formData = new FormData();
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        formData.append('file', file);
+                        formData.append('add_medicine_excel',$("#add_medicine_excel").val());
+                        $.ajax({
+                            type:'post',
+                            url:'/healthcenter/compounder/',
+                            data:formData,
+                            processData: false,
+                            contentType: false,
+                            success : function(data){
+                                if(data.status == 1){
+                                    alert('data inserted successfully')
+                                    window.location.reload()
+                                }
+                                else{
+                                    alert('error while inserting')
+                                }
+                            }
+                        })
+                    }
+              })
               $('#add_medicine').click(function(e)
                                                   {
                                                     var new_medicine = document.getElementById('new_medicine').value;
@@ -605,6 +711,18 @@
                         </div>
                     </div>
                     <div class="field">
+                        <label>manufacture name</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="manufacturerName" id="manufacture_name_b" name="manufacture_name" type="text" readonly>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>pack size label</label>
+                        <div class="ui fluid large input">
+                            <input placeholder="Pack_size" id="packsize_b" name="packsize" type="text" readonly>
+                        </div>
+                    </div> 
+                    <div class="field">
                     <label><br></label>
 
                     <div >
@@ -632,24 +750,25 @@
                             med_list_b.innerHTML="";
                             $.each(data.sim,function(key,value){
                                 var new_option = document.createElement('option')
-                                new_option.value = value.brand_name
+                                new_option.value = value.brand_name + ","+ value.id
                                 med_list_b.appendChild(new_option)
                             })
+                            if(data.status==2){
+
+                                var manufacturer_name_b =document.getElementById("manufacture_name_b")
+                                if(data.sim[0].manufacturer_name == null) manufacturer_name_b.value=""
+                                else manufacturer_name_b.value = data.sim[0].manufacturer_name
+                                
+
+                                var pack_size_label_b = document.getElementById('packsize_b')
+                                if(data.sim[0].pack_size_label == null) pack_size_label_b.value=""
+                                else pack_size_label_b.value = data.sim[0].pack_size_label
+
+                                $('#thr').append("Current Threshold: "+data.sim[0].threshold);
+                            }
                         }
                     });
                     }
-                      document.getElementById("thr").innerHTML = "";
-                      $.ajax({
-                      type:'post',
-                      url:'/healthcenter/compounder/',
-                      data: {
-                      csrfmiddlewaretoken: '{{ csrf_token }}',
-                      medicine:$("#brand_name_b").val(),
-                      },
-                      success: function(data){
-                        $('#thr').append("Current Threshold: "+data.thresh);
-                        }
-                   });
                  });
 
 

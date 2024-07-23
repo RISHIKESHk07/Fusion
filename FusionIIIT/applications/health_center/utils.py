@@ -1,5 +1,7 @@
 import json
 import os
+import pandas as pd
+from django.db import transaction
 from datetime import datetime, timedelta,date
 from applications.globals.models import ExtraInfo
 from django.core import serializers
@@ -154,7 +156,8 @@ def compounder_view_handler(request):
     # edit Threshold
     elif 'edit_threshold' in request.POST:
         try:
-            medicine = request.POST.get('medicine_id')
+            medicine_with_id = request.POST.get('medicine_id')
+            medicine = medicine_with_id.split(',')[0]
             new_threshold = int(request.POST.get('threshold'))
             threshold_med=All_Medicine.objects.get(brand_name = medicine)
             threshold_med.threshold=new_threshold
@@ -166,7 +169,7 @@ def compounder_view_handler(request):
                     Req.delete()
                 else : Req.save()
             else :
-                medicine_stock = Present_Stock.objects.filter(medicine_id = threshold_med)
+                medicine_stock = Present_Stock.objects.filter(Q(medicine_id = threshold_med) & Q(Expiry_date__gt = date.today()))
                 qty=0
                 for med in medicine_stock:
                     qty+=med.quantity
@@ -337,7 +340,7 @@ def compounder_view_handler(request):
             else :
                 status=2
                 similar_name_qs = All_Medicine.objects.filter(id=id)
-            similar_name = list(similar_name_qs.values('id', 'medicine_name','constituents','manufacturer_name','pack_size_label','brand_name'))
+            similar_name = list(similar_name_qs.values('id', 'medicine_name','constituents','manufacturer_name','pack_size_label','brand_name','threshold'))
             val_to_return = []
 
             try:
@@ -371,13 +374,14 @@ def compounder_view_handler(request):
         medicine_id = request.POST.get('medicine_name_b')
         stock = request.POST.get('stock')
         medicine_brand_name = medicine_id.split(",")[0]
+        id= medicine_id.split(",")[1]
         print(medicine_brand_name)
-        med_name = All_Medicine.objects.get(brand_name=medicine_brand_name).brand_name
+        med_name = All_Medicine.objects.get(id=id).brand_name
         stk=stock.split(",")
         qty = int(stk[3])
         status=1
         if quantity>qty : status=0
-        return JsonResponse({"status":status,"med_name":med_name})
+        return JsonResponse({"status":status,"med_name":med_name,"id":id})
     
     # elif 'doct' in request.POST:
     #     doctor_id = request.POST.get('doct')
@@ -514,12 +518,13 @@ def compounder_view_handler(request):
 
         for med in medicine:
             med_name = med["brand_name"]
+            id=med_name.split(",")[1]
             quant = int(med['quantity'])
             days = med['Days'] 
             times = med['Times']
             stock = med['stock'] 
             stk = stock.split(",")
-            med_id = All_Medicine.objects.get(brand_name = med_name)
+            med_id = All_Medicine.objects.get(id=id)
             p_stock = Present_Stock.objects.get(id=int(stk[4]))
             All_Prescribed_medicine.objects.create(
                 prescription_id = pres,
@@ -699,7 +704,63 @@ def compounder_view_handler(request):
                 presc_med_id.save()
         
         return JsonResponse({"status":1})
+    
+    elif 'add_medicine_excel' in request.POST:
+        excel_file = request.FILES.get('file')
+        df = pd.read_excel(excel_file)
+        try:
+            required_columns = ['medicine_name', 'brand_name', 'manufacturer_name', 'packsize', 'constituents' , 'threshold']
+            if not all(column in df.columns for column in required_columns):
+                return JsonResponse({"status":0})
+            with transaction.atomic():
+                for _, row in df.iterrows():
+                    All_Medicine.objects.create(
+                        medicine_name=row['medicine_name'],
+                        brand_name=row['brand_name'],
+                        manufacturer_name=row['manufacturer_name'],
+                        pack_size_label=row['packsize'],
+                        constituents = row['constituents'],
+                        threshold = row['threshold']
+                    )
+            return JsonResponse({"status":1})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"status":0})
 
+    elif 'add_stock_excel' in request.POST:
+        excel_file = request.FILES.get('file')
+        df = pd.read_excel(excel_file)
+        try:
+            required_columns = ['brand_name', 'manufacturer_name', 'packsize','quantity','supplier','Expiry_date']
+            if not all(column in df.columns for column in required_columns):
+                return JsonResponse({"status":0})
+            with transaction.atomic():
+                for _, row in df.iterrows():
+                    med=All_Medicine.objects.get(
+                        Q(brand_name=row['brand_name']) & Q(manufacturer_name=row['manufacturer_name']) & Q(pack_size_label=row['packsize'])
+                    )
+                    stk=Stock_entry.objects.create(
+                        quantity=row['quantity'],
+                        medicine_id=med,
+                        supplier=row['supplier'],
+                        Expiry_date=row['Expiry_date'],
+                        date=date.today()
+                    )
+                    Present_Stock.objects.create(
+                        quantity=row['quantity'],
+                        stock_id=stk,
+                        medicine_id=med,
+                        Expiry_date=row['Expiry_date'],
+                    )
+                    if Required_medicine.objects.filter(medicine_id = med).exists():
+                        req=Required_medicine.objects.get(medicine_id = med)
+                        req.quantity+=qty
+                        if(req.quantity<req.threshold) : req.save()
+                        else : req.delete() 
+            return JsonResponse({"status":1})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"status":0})
 
     elif 'cancel_presc' in request.POST:
         presc_id = request.POST.get('cancel_presc')

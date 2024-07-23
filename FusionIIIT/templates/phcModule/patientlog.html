@@ -229,7 +229,7 @@
                                                               if(data.status==1){
                                                                     document.getElementById('medicine_schedule_table').style.display = 'block';
                                                                     alert("added medicine");
-                                                                    $('#sched_b').append("<tr><td>" + data.med_name + "</td><td>" +
+                                                                    $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
                                                                     document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
                                                                }
                                                                else if(data.status==-1){

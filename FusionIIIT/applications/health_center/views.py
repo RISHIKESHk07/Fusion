@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 from django.http import FileResponse,Http404
 from datetime import date, datetime, timedelta, time
 import xlrd
@@ -688,6 +689,11 @@ def compounder_view_prescription(request,prescription_id):
 
 @login_required
 def view_file(request,file_id):
+    file_id_int = int(file_id)
+    if(file_id_int == -2):
+        return FileResponse(open('add_stock_example.xlsx', 'rb'), as_attachment=True, filename="example_add_stock.xlsx")
+    if(file_id_int == -1):
+        return FileResponse(open('add_medicine_example.xlsx', 'rb'), as_attachment=True, filename="example_add_medicine.xlsx")  
     filepath = "generated.pdf"
 
     file=files.objects.get(id=file_id)
