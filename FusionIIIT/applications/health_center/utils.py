@@ -656,12 +656,13 @@ def compounder_view_handler(request):
         medicine=eval('('+pre_medicine+')')
         for med in medicine:
             med_name = med["med_name"]
+            id = med_name.split(',')[1]
             quant = int(med['quantity'])
             days = med['Days'] 
             times = med['Times']
             stock = med['stock'] 
             stk = stock.split(",")
-            med_id = All_Medicine.objects.get(brand_name = med_name)
+            med_id = All_Medicine.objects.get(id = id)
             print(stk[4])
             p_stock = Present_Stock.objects.get(id=int(stk[4]))
             All_Prescribed_medicine.objects.create(
