@@ -55,7 +55,7 @@
         <div class="eight wide column">
 
             {% comment %}The ap `pointment approval tab starts here!{% endcomment %}
-            <div class="ui active tab segment" style='height:650px;width:820px;overflow-x:scroll'>
+            <div class="ui active tab segment" style='height:650px;width:820px;overflow-x:scroll;' id="printingAreaTest">
                 <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
                 {% block patientlog %}
                 <div class="ui vertical stripe team segment"
@@ -198,9 +198,9 @@
                        <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
                    </div>
                    {% if prescription.file_id != 0 %}
-                    <div class="field">
+                    <div class="field" style="margin-botttom: 20px;">
                         <label><br></label>
-                        <input type="button" id="{{prescription.file_id}}" onclick="view_report(this)" value="view report"class="ui small left floated primary button" />
+                        <input type="button" id="{{prescription.file_id}}" onclick="view_report(this)" value="View Report"class="ui small left floated primary button" />
                     </div>
                     {% endif %}
                 </form>
@@ -223,7 +223,9 @@
                     <label>Detail of Disease</label>
                     <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
                 </div>
-                revoked medicine in this prescription followup
+                <div>
+                    <p style="text-align: center; font-size: 15px;margin-top: 10px;margin-bottom: 10px;font-weight: 900;">Revoked Medicine in this Prescription Follow-up</p>
+                </div>
                 <table  class="ui very basic collapsing celled small fluid sortable table"
                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                        <thead>
@@ -272,7 +274,9 @@
                         {% endfor %}
                        </tbody>
                    </table>
-                   medicine prescribed in this followup
+                   <div>
+                    <p style="text-align: center; font-size: 15px;margin-top: 20px;margin-bottom: 20px;font-weight: 900;">Medicine Prescribed in this Follow-up</p>
+                   </div>
                 <table  class="ui very basic collapsing celled small fluid sortable table"
                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                        <thead>
@@ -326,9 +330,9 @@
                     <textarea rows="2" id="" name="" readonly>{{f_pres.test}}</textarea>
                 </div>
                 {% if f_pres.file_id != 0 %}
-                <div class="field">
+                <div class="field" style="margin-bottom: 20px;">
                     <label><br></label>
-                    <input type="button" id="{{f_pres.file_id}}" onclick="view_report(this)" value="view report"class="ui small left floated primary button" />
+                    <input type="button" id="{{f_pres.file_id}}" onclick="view_report(this)" value="View Report"class="ui small left floated primary button" />
                 </div>
                 {% endif %}
 
@@ -337,7 +341,8 @@
                 {% endfor %}
                 <div class="field">
                     <label><br></label>
-                    <input type="button" id="add_followup" name=""  value="add_followup" class="ui large right floated primary button" />               
+                    <input type="button" id="printArea" name=""  value="Print Prescription" class="ui large right floated primary button" />               
+                    <input type="button" id="add_followup" name=""  value="Add Follow-up" class="ui large right floated primary button" />             
                     </div>
                <div>
                 <form id="followup_form" class="ui form" method="POST">{% csrf_token %}
@@ -513,10 +518,31 @@
                     form.style.display="none"
                      
                     $("#add_followup").click(function(e){
+                        document.getElementById('printArea').style.display="none"
                         form.style.display="block"
                         var button = document.getElementById('add_followup')
                         button.style.display="none"
                     })
+                    $('#printArea').click((e)=>{
+                        var printReport = document.getElementById("printingAreaTest").innerHTML;
+                         var iframe = document.createElement("iframe");
+                         iframe.style.position = "absolute";
+                         iframe.style.top = "-99999px"; // Move the iframe off-screen
+                         document.body.appendChild(iframe);
+                         var doc = iframe.contentWindow.document;
+                         doc.write(
+                           "<html><head><style>@media print { .avoid-page-break { page-break-inside: avoid; } } #printArea{ display:none; } #add_followup{display:none;} </style></head><body>" +
+                 printReport +
+                 "</body></html>"
+             );
+             doc.close();
+             iframe.contentWindow.focus();
+             iframe.contentWindow.print();
+             iframe.contentWindow.onafterprint = function () {
+               document.body.removeChild(iframe);
+               close();
+             };
+                })
                      $('#medicine_id_b').change(function(e){
                         name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
@@ -607,6 +633,7 @@
        </script>
        <script type="text/javascript">
                        $('#prescribe_b').click(function(e){
+                                                        document.getElementById('printArea').style.display="block"
                                                        var user = document.getElementById('user').value;
                                                        var details = document.getElementById('details_b').value;
                                                        var tbl = document.getElementById('sched_b');

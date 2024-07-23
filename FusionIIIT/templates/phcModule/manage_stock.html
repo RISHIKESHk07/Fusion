@@ -24,13 +24,20 @@
       {% csrf_token %}
       <div class="field">
         <label>Brand name</label>
-
-        <input
-          type="text"
-          class=""
-          id="brand_name_a"
-          name="brand_name_a"
-          list="med_list_a" />
+        <div style="display: flex; gap: 10px">
+          <input
+            type="text"
+            class=""
+            id="brand_name_a"
+            name="brand_name_a"
+            list="med_list_a" />
+          <input
+            type="button"
+            id="add_stock_search_btn"
+            name="add_stock_search_btn"
+            value="Search"
+            class="ui small primary button" />
+        </div>
         <datalist id="med_list_a"> </datalist>
       </div>
       <div class="field">
@@ -130,7 +137,7 @@
     <form
       class="ui form"
       method="POST"
-      style="padding: 8px; padding-left: 24px; padding-right: 24px;">
+      style="padding: 8px; padding-left: 24px; padding-right: 24px">
       {% csrf_token %}
       <div class="field">
         <label for="file">Report</label>
@@ -197,7 +204,7 @@
         }
       });
 
-      $("#brand_name_a").change(function () {
+      $("#add_stock_search_btn").click(function () {
         var name = document.getElementById("brand_name_a").value;
         if (name.length > 2) {
           $.ajax({
@@ -412,7 +419,10 @@ medicine tab starts here {% endcomment %}
       <hr />
       <p>Insert Data using excel file</p>
     </div>
-    <form class="ui form" method="POST" style="padding: 8px; padding-left: 24px; padding-right: 24px;">
+    <form
+      class="ui form"
+      method="POST"
+      style="padding: 8px; padding-left: 24px; padding-right: 24px">
       {% csrf_token %}
       <div class="field">
         <label for="file">Report</label>
@@ -537,8 +547,8 @@ medicine tab starts here {% endcomment %}
   <br />
   <div class="extra segment"></div>
 </div>
-{% comment %}the add medicine tab ends here {% endcomment %} 
-{% comment %}the view stock tab starts here {% endcomment %}
+{% comment %}the add medicine tab ends here {% endcomment %} {% comment %}the
+view stock tab starts here {% endcomment %}
 <div class="ui tab" data-tab="viewlivestock">
   <div id="meds_print" class="ui vertical segment">
     <button
@@ -618,8 +628,8 @@ medicine tab starts here {% endcomment %}
     </table>
   </div>
 </div>
-{% comment %}the view stock tab ends here {% endcomment %} 
-{% comment %}the view stock tab starts here {% endcomment %}
+{% comment %}the view stock tab ends here {% endcomment %} {% comment %}the view
+stock tab starts here {% endcomment %}
 <div class="ui tab" data-tab="viewexpiredstock">
   <div id="exmeds_print" class="ui vertical segment">
     <table
@@ -754,8 +764,8 @@ threshold stock tab starts here {% endcomment %}
     </table>
   </div>
 </div>
-{% comment %}the view inventory tab ends here {% endcomment %} 
-{% comment %}the edit threshold tab starts here{% endcomment %}
+{% comment %}the view inventory tab ends here {% endcomment %} {% comment %}the
+edit threshold tab starts here{% endcomment %}
 <div class="ui tab" data-tab="EditThreshold">
   <p id="change_threshold"></p>
   <div class="ui vertical segment">
@@ -766,12 +776,20 @@ threshold stock tab starts here {% endcomment %}
       {% csrf_token %}
       <div class="field">
         <label>Brand Name</label>
-        <input
-          type="text"
-          class=""
-          id="brand_name_b"
-          name="brand_name_b"
-          list="med_list_b" />
+        <div style="display: flex; gap: 10px">
+          <input
+            type="text"
+            class=""
+            id="brand_name_b"
+            name="brand_name_b"
+            list="med_list_b" />
+          <input
+            type="button"
+            id="edit_threshold_search_btn"
+            name="edit_threshold_search_btn"
+            value="Search"
+            class="ui small primary button" />
+        </div>
         <datalist id="med_list_b"> </datalist>
       </div>
       <div class="field">
@@ -819,7 +837,7 @@ threshold stock tab starts here {% endcomment %}
       </div>
     </form>
     <script type="text/javascript">
-      $("#brand_name_b").change(function () {
+      $("#edit_threshold_search_btn").click(function () {
         var name = document.getElementById("brand_name_b").value;
         if (name.length > 2) {
           $.ajax({
