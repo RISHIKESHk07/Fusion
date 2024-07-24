@@ -125,7 +125,8 @@ def compounder_view_handler(request):
             medicine = request.POST.get('medicine_id')
             # threshold_a = request.POST.get('threshold_a')
             med_brand_name = medicine.split(',')[0]
-            medicine_id = All_Medicine.objects.get(brand_name = med_brand_name)
+            id = medicine.split(',')[1]
+            medicine_id = All_Medicine.objects.get(id = id)
             qty = int(request.POST.get('quantity'))
             supplier=request.POST.get('supplier')
             expiry=request.POST.get('expiry_date')
@@ -344,8 +345,8 @@ def compounder_view_handler(request):
             val_to_return = []
 
             try:
-                med = All_Medicine.objects.get(brand_name=medicine_name)
-                stk = Stock_entry.objects.filter(medicine_id=med)
+                med = All_Medicine.objects.get(id = id)
+                stk = Stock_entry.objects.filter(medicine_id=med).order_by('Expiry_date')
                 for s in stk:
                     if s.Expiry_date > date.today():
                         obj = {}

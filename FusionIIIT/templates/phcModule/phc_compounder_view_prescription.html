@@ -62,7 +62,7 @@
                 style="padding-left: 3.5%;
                    padding-right: 3.5%;">
    
-               <form class="ui form" method="POST">{% csrf_token %}
+               <form class="ui form" method="POST" style="margin-bottom: 40px;">{% csrf_token %}
                    <div class="two fields">
                      <div class="field">
                          <label>User</label>
@@ -197,10 +197,9 @@
                        <label>Tests Suggested</label>
                        <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
                    </div>
-                   {% if prescription.file_id != 0 %}
-                    <div class="field" style="margin-botttom: 20px;">
-                        <label><br></label>
-                        <input type="button" id="{{prescription.file_id}}" onclick="view_report(this)" value="View Report"class="ui small left floated primary button" />
+                    {% if prescription.file_id != 0 %}
+                    <div class="" style="margin-botttom: 20px;">
+                        <button id="{{prescription.file_id}}" onclick="view_report(this)" class="ui small left floated primary button" >View Report</button>
                     </div>
                     {% endif %}
                 </form>
@@ -425,49 +424,66 @@
                         </tbody>
                     </table>
  
-                    <div class="two fields">
-                        <div class="field" >
-                            <label >Medicine</label>
-      
-                              <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list">
+                    <div class="flex flex-col">
+                        <div class="field">
+                              <label>Medicine</label>
+                                  <div class="flex" style="gap: 10px;">
+                                      <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list" />
+                                      <input type="button" id="medicine_search_b" name="medicine_search_b" value="Search" class="ui small primary button" />
+                                  </div>
                               <datalist id="med_list">
                               </datalist>
-                            </input>
                         </div>
-    
-                       <div class="field">
-                         <label>Quantity</label>
-                         <div class="ui fluid large input">
-                             <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
-    
-                         </div>
-                      </div>
-                        <div class="field">
-                          <label>No of days</label>
-                          <div class="ui fluid large input">
-                              <input placeholder="No of days" id="days_b" name="days_b" type="number">
-    
-                          </div>
-                         </div>
-                         <div class="field">
-                           <label>Times per day</label>
-                           <div class="ui fluid large input">
-                               <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
-    
+      
+                        <div class="flex">
+                          <div class="field">
+                              <label>Manufacturer Name</label>
+                              <div>
+                                  <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;">
+                              </div>
+                           </div>
+                           <div class="field">
+                              <label>Pack Size</label>
+                              <div>
+                                  <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;">
+                              </div>
                            </div>
                         </div>
-                        <div class="field">
-                            <label>Stock</label>
-                            <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
-                                <option value="" disabled selected>--SELECT--</option>
-                              </select>
+      
+                         <div class="flex w-full">
+                          <div class="field">
+                              <label>Quantity</label>
+                              <div class="">
+                                  <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
+         
+                              </div>
+                           </div>
+                             <div class="field">
+                               <label>No of days</label>
+                               <div class="">
+                                   <input placeholder="No of days" id="days_b" name="days_b" type="number">
+         
+                               </div>
+                              </div>
+                              <div class="field">
+                                <label>Times per day</label>
+                                <div class="">
+                                    <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
+         
+                                </div>
+                             </div>
                          </div>
-                         <div class="field">
-                             <label><br></label>
-                             <input type="button" id="medicine_b" name="medicine_b" value="Add"class="ui small left floated primary button" />
-    
-                         </div>
-                    </div>
+                          <div class="field">
+                              <label >Stock</label>
+                              <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
+                                  <option value="" disabled selected>--SELECT--</option>
+                                </select>
+                           </div>
+                           <div class="field">
+                               <label><br></label>
+                               <input type="button" id="medicine_b" name="medicine_b" value="Add" class="ui medium right floated primary button" />
+                           </div>
+                      </div>
                     <table  class="ui very basic collapsing celled small fluid sortable table"
                            style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                         <thead>
@@ -543,8 +559,8 @@
                close();
              };
                 })
-                     $('#medicine_id_b').change(function(e){
-                        name=document.getElementById('medicine_id_b').value;
+                $('#medicine_search_b').click(function(e){
+                    name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
                         $.ajax({
                         type:'post',
@@ -572,10 +588,21 @@
                                 let qty = value.quantity
                                 select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
                             });
+                            if (data.status == 2) {
+                                var manufacturer_name_b =
+                                document.getElementById("medicine_manu_name_b");
+                                if (data.sim[0].manufacturer_name == null)
+                                    manufacturer_name_b.value = "";
+                                else manufacturer_name_b.value = data.sim[0].manufacturer_name;
+                                var pack_size_label_b = document.getElementById("medicine_pack_size_b");
+                                if (data.sim[0].pack_size_label == null)
+                                    pack_size_label_b.value = "";
+                                else pack_size_label_b.value = data.sim[0].pack_size_label;
+                            }
                         }
                     });
                     }
-                    });
+                  });
 
                     function view_report(f){
                         console.log(f.id)
@@ -735,6 +762,21 @@
 
     </div>
     {% comment %}The grid ends here!{% endcomment %}
+    <style>
+        .w-full {
+            width: 100%;
+        }
+        .flex {
+            display: flex;
+            justify-content: space-between;
+        }
+        .flex-col {
+            flex-direction: column;
+        }
+        .bbx {
+            border: 1px solid red;
+        }
+    </style>
 
 {% endblock %}
 

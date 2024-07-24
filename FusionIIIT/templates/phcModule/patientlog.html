@@ -211,6 +211,17 @@
                                 let qty = value.quantity
                                 select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
                             });
+                            if (data.status == 2) {
+                                var manufacturer_name_b =
+                                document.getElementById("medicine_manu_name_b");
+                                if (data.sim[0].manufacturer_name == null)
+                                    manufacturer_name_b.value = "";
+                                else manufacturer_name_b.value = data.sim[0].manufacturer_name;
+                                var pack_size_label_b = document.getElementById("medicine_pack_size_b");
+                                if (data.sim[0].pack_size_label == null)
+                                    pack_size_label_b.value = "";
+                                else pack_size_label_b.value = data.sim[0].pack_size_label;
+                            }
                         }
                     });
                     }
@@ -259,6 +270,8 @@
                                                                 document.getElementById("times_b").value="";
                                                                 document.getElementById("days_b").value="";
                                                                 document.getElementById("medicine_id_b").value="";
+                                                                document.getElementById("medicine_manu_name_b").value="";
+                                                                document.getElementById("medicine_pack_size_b").value="";
                                                             }
                                                       });
                                                     });
@@ -360,12 +373,6 @@
                         Details
                     </td>
                     <td style="font-weight:bold;color:black;">
-                        Test
-                    </td>
-                    <td style="font-weight:bold;color:black;">
-                        Report
-                    </td>
-                    <td style="font-weight:bold;color:black;">
                         View
                     </td>
                 </tr>
@@ -399,16 +406,6 @@
                         {{pre.details}}
                     </td>
                     <td>
-                        {{pre.test}}
-                    </td>
-                    <td style="white-space:nowrap;">
-                        <!-- {% if pre.file %}
-                        <a href="{{ pre.file }}" download>
-                            <i class="ui download icon right floated"></i>
-                        </a>
-                        {% endif %} -->
-                    </td>   
-                    <td>
                         <button class="view-followup-btn"><a style="color: white;" href="{% url 'healthcenter:view_prescription' prescription_id=pre.id %}">View/Follow-up</a></button>
                     </td>
 
@@ -439,7 +436,7 @@
             .view-followup-btn:hover {
                 background-color: #0b5ed7;
             }
-            .w-fill {
+            .w-full {
                 width: 100%;
             }
             .flex {
