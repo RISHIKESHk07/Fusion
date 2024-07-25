@@ -89,14 +89,32 @@ def compounder_view(request):
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('pathologist_id')
             # expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
             # live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
-            stocks = Required_medicine.objects.all()
+            page_size=2
+            
+            # stocks = Required_medicine.objects.all()
+            current_required_page = 1
+            page_size_required = page_size
+            offset_stock_required = (current_required_page - 1 )* page_size_required
+            required_data = Required_medicine.objects.filter()[offset_stock_required:offset_stock_required + page_size_required]
+            total_pages_stock_required = (Required_medicine.objects.all().count() + page_size_required -1) // page_size_required
+            stocks = {
+                "count_stock_required" : total_pages_stock_required,
+                "page_stock_required":{
+                    "object_list":required_data,
+                    'number' : current_required_page,
+                    'has_previous' : current_required_page > 1 ,
+                    'has_next': current_required_page < total_pages_stock_required,
+                    'previous_page_number' :  current_required_page - 1 if current_required_page > 1 else None,
+                    'next_page_number' :  current_required_page + 1 if current_required_page < total_pages_stock_required else None,      
+                }
+            }
 
             current_page_stock_expired = 1
-            page_size_stock_expired = 2
+            page_size_stock_expired = page_size
             offset_stock_expired = (current_page_stock_expired - 1 )* page_size_stock_expired
             expired=[]
-            expiredData=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[offset_stock_expired:offset_stock_expired + page_size_stock_expired]
-            total_pages_stock_expired = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + page_size_stock_expired - 1) // page_size_stock_expired
+            expiredData=Stock_entry.objects.filter(Expiry_date__lt=date.today()).order_by('Expiry_date')[offset_stock_expired:offset_stock_expired + page_size_stock_expired]
+            total_pages_stock_expired = ( Stock_entry.objects.filter(Expiry_date__lt=date.today()).count()  + page_size_stock_expired - 1) // page_size_stock_expired
             for e in expiredData:
                 obj={}
                 obj['medicine_id']=e.medicine_id.brand_name
@@ -118,17 +136,11 @@ def compounder_view(request):
                            'previous_page_number': current_page_stock_expired - 1 if current_page_stock_expired > 1 else None,
                            'next_page_number': current_page_stock_expired + 1 if current_page_stock_expired < total_pages_stock_expired else None,
                      }
-            }      
-            
-            
-            
-            
-            # print("expire:::::")
-            # for exp in exp:
-            #     print(exp)
+            }
+                  
             
             current_page_stock = 1
-            page_size_stock = 2
+            page_size_stock = page_size
             offset_stock = (current_page_stock - 1 )* page_size_stock
             live_meds=[]
             live=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[offset_stock:offset_stock + page_size_stock]
@@ -158,8 +170,6 @@ def compounder_view(request):
             }    
             
             
-            
-            
             schedule=Doctors_Schedule.objects.select_related('doctor_id').all().order_by('day','doctor_id')
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('day','pathologist_id')
             
@@ -169,10 +179,10 @@ def compounder_view(request):
             
             #Logic for the padination and view prescriptions is below , used ajax for pagination
             current_page = 1
-            page_size = 2  # Default to 2 if not specified
-            offset = (current_page - 1) * page_size
+            page_size_prescription = page_size  # Default to 2 if not specified
+            offset = (current_page - 1) * page_size_prescription
             # Fetch the prescriptions with limit and offset
-            prescriptions = All_Prescription.objects.all().order_by('-date', '-id')[offset:offset + page_size]
+            prescriptions = All_Prescription.objects.all().order_by('-date', '-id')[offset:offset + page_size_prescription]
             
             report = []
             for pre in prescriptions:
@@ -190,7 +200,7 @@ def compounder_view(request):
             # Handle total count for pagination context
             total_count = All_Prescription.objects.count()
             # Calculate total number of pages
-            total_pages = (total_count + page_size - 1) // page_size  # This ensures rounding up
+            total_pages = (total_count + page_size_prescription - 1) // page_size_prescription  # This ensures rounding up
             prescContext = {
                 'count': total_pages,
                 'page': {

@@ -556,7 +556,7 @@ view stock tab starts here {% endcomment %}
       id="pr_meds"
       name="PDF"
       value="PDF"
-      class="ui primary button right floated">
+      class="ui primary button left floated">
       <!-- Download -->
       <i class="ui download icon right floated"></i>
     </button>
@@ -632,10 +632,18 @@ view stock tab starts here {% endcomment %}
                 {% endfor %}
                 </tbody>
                 <div id="pagination-stock-view" class="pagination-stock-view">
+                  {% if live_meds.page_stock_view.has_previous %}
                   <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="pagination-link">Previous</button>
+                  {% else %}
+                  <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
+                  {% endif %}
                   <span>Page {{ live_meds.page_stock_view.number }} of {{ live_meds.count_stock_view }}</span>
+                  {% if live_meds.page_stock_view.has_next %}
                   <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="pagination-link">Next</button>
-              </div>
+                  {% else %}
+                  <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="pagination-link" style="display:None">Next</button>
+                  {% endif %}        
+                </div>
             </table>
         </div>
     </div>
@@ -644,6 +652,44 @@ view stock tab starts here {% endcomment %}
     {% comment %}the view stock tab starts here {% endcomment %}
     <div class="ui tab" data-tab="viewexpiredstock">
         <div  id="exmeds_print" class="ui vertical segment" >
+          <button
+          type="button"
+          id="exp_meds"
+          name="PDF"
+          value="PDF"
+          class="ui primary button left floated">
+          <!-- Download -->
+          <i class="ui download icon right floated"></i>
+        </button>
+    
+        <script>
+          $("#exp_meds").click(function (e) {
+            var sTable = document.getElementById("exmeds_print").innerHTML;
+    
+            var style = "<style>";
+            style = style + "table {width: 100%;font: 17px Calibri;}";
+            style =
+              style +
+              "table, th, td {border: solid 1px #DDD; border-collapse: collapse;";
+            style = style + "padding: 2px 3px;text-align: center;}";
+            style = style + "</style>";
+    
+            // CREATE A WINDOW OBJECT.
+            var win = window.open("", "", "height=700,width=700");
+    
+            win.document.write("<html><head>");
+            win.document.write("<title>Current Stock</title>"); // <title> FOR PDF HEADER.
+            win.document.write(style); // ADD STYLE INSIDE THE HEAD TAG.
+            win.document.write("</head>");
+            win.document.write("<body>");
+            win.document.write(sTable); // THE TABLE CONTENTS INSIDE THE BODY TAG.
+            win.document.write("</body></html>");
+    
+            win.document.close(); // CLOSE THE CURRENT WINDOW.
+    
+            win.print(); // PRINT THE CONTENTS.
+          });
+        </script>
 
 
             <table class="ui very basic collapsing celled large fluid sortable table"
@@ -663,7 +709,7 @@ view stock tab starts here {% endcomment %}
       </thead>
 
       <tbody id="manage-stock-expired">
-        {% for view in exired.page_stock_expired.object_list %}
+        {% for view in expired.page_stock_expired.object_list %}
         <tr>
 
             <td style="white-space:nowrap;">
@@ -681,10 +727,19 @@ view stock tab starts here {% endcomment %}
                 </tr>
                 {% endfor %}
                 <div id="pagination-stock-expired" class="pagination-stock-expired">
-                  <button id="previous-page-stock-expired" data-page="{{ live_meds.page_stock_expired.previous_page_number }}" class="pagination-link">Previous</button>
-                  <span>Page {{ live_meds.page_stock_expired.number }} of {{ live_meds.count_stock_expired }}</span>
-                  <button id="next-page-stock-expired" data-page="{{ live_meds.page_stock_expired.next_page_number }}" class="pagination-link">Next</button>
-              </div>
+                  {% if expired.page_stock_expired.has_previous %}
+                  <button id="previous-page-stock-expired" data-page="{{ expired.page_stock_expired.previous_page_number }}" class="pagination-link">Previous</button>
+                  {% else %}
+                  <button id="previous-page-stock-expired" data-page="{{ expired.page_stock_expired.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
+                  {% endif %}
+                  <span>Page {{ expired.page_stock_expired.number }} of {{ expired.count_stock_expired }}</span>
+                  {% if expired.page_stock_expired.has_next %}
+                  <button id="next-page-stock-expired" data-page="{{ expired.page_stock_expired.next_page_number }}" class="pagination-link">Next</button>
+                  {% else %}
+                  <button id="next-page-stock-expired" data-page="{{ expired.page_stock_expired.next_page_number }}" class="pagination-link" style="display:None">Next</button>
+                  {% endif %}
+
+                </div>
                 </tbody>
 
             </table>
@@ -713,15 +768,15 @@ view stock tab starts here {% endcomment %}
     
         {% comment %}the threshold stock tab starts here {% endcomment %}
         <div  class="ui tab" data-tab="thresholdstock">
-            <div id="med_print" class="ui vertical segment" >
-                <button type="button"  id="pr_med" name="PDF" value="PDF" class="ui primary button right floated">
+            <div id="reqmed_print" class="ui vertical segment" >
+                <button type="button"  id="req_med" name="PDF" value="PDF" class="ui primary button left floated">
                     <!-- Download -->
                     <i class="ui download icon right floated"></i>
                 </button>
 
                 <script>
-    $("#pr_med").click(function(e){
-        var sTable = document.getElementById('med_print').innerHTML;
+    $("#req_med").click(function(e){
+        var sTable = document.getElementById('reqmed_print').innerHTML;
 
         var style = "<style>";
         style = style + "table {width: 100%;font: 17px Calibri;}";
@@ -813,14 +868,16 @@ view stock tab starts here {% endcomment %}
                          datatype:'manage_stock_expired'
                          },
                          success: function(data) {
-                             $('#view-stock-list-expired').empty();
+                             $('#manage-stock-expired').empty();
                             
-                             $.each(data.report_stock_view, function(index, view) {
+                             $.each(data.report_stock_expired, function(index, view) {
                                 console.log("view",data)
-                                 $('#view-stock-list-expired').append(
+                                 $('#manage-stock-expired').append(
                                      '<tr>' +
-                                        
-                    
+                                        '<td>'+view.medicine_id+'</td>'+
+                                        '<td>'+view.quantity+'</td>'+
+                                        '<td>'+view.Expiry_date+'</td>'+
+                                        '<td>'+view.supplier+'</td>'+
                                      '</tr>'
                                  );
                              });
@@ -874,8 +931,8 @@ view stock tab starts here {% endcomment %}
         </tr>
       </thead>
 
-      <tbody id="req_med">
-        {% for stock in stocks %} {% if stock.quantity < stock.threshold %}
+      <tbody id="req_med_tabel">
+        {% for stock in stocks.page_stock_required.object_list %} {% if stock.quantity < stock.threshold %}
         <tr>
           <td>{{stock.medicine_id.brand_name}}</td>
 
@@ -883,8 +940,75 @@ view stock tab starts here {% endcomment %}
           <td>{{stock.threshold}}</td>
         </tr>
         {% endif %} {% endfor %}
+        <div id="pagination-stock-required" class="pagination-stock-required">
+          {% if stocks.page_stock_required.has_previous %}
+          <button id="previous-page-stock-required" data-page="{{ stocks.page_stock_required.previous_page_number }}" class="pagination-link">Previous</button>
+          {% else %}
+          <button id="previous-page-stock-required" data-page="{{ stocks.page_stock_required.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
+          {% endif %}
+          <span>Page {{ stocks.page_stock_required.number }} of {{ stocks.count_stock_required }}</span>
+          {% if stocks.page_stock_required.has_next %}
+          <button id="next-page-stock-required" data-page="{{ stocks.page_stock_required.next_page_number }}" class="pagination-link">Next</button>
+          {% else %}
+          <button id="next-page-stock-required" data-page="{{ stocks.page_stock_required.next_page_number }}" class="pagination-link" style="display:None">Next</button>
+          {% endif %}
+
+        </div>
       </tbody>
     </table>
+    <script type="text/javascript">
+      function loadPageManageRequired(pageNumber) {
+                     $.ajax({
+                         url: '',
+                         type: 'POST',
+                         
+                         data: {
+                         csrfmiddlewaretoken: '{{ csrf_token }}',
+                         page_stock_required: pageNumber,
+                         datatype:'manage_stock_required'
+                         },
+                         success: function(data) {
+                             $('#req_med_tabel').empty();
+                            
+                             $.each(data.report_stock_required, function(index, view) {
+                                console.log("view",data)
+                                 $('#req_med_tabel').append(
+                                     '<tr>' +
+                                        "<td>"+view.medicine_id +"</td>"+
+                                        "<td>"+view.quantity+"</td>"+
+                                        "<td>"+view.threshold+"</td>"+                    
+                                     '</tr>'
+                                 );
+                             });
+                             
+                             if (data.has_previous) {
+                                 $('#previous-page-stock-required').data('page', data.previous_page_number).show();
+                             } else {
+                                 $('#previous-page-stock-required').hide();
+                             }
+         
+                             if (data.has_next) {
+                                 $('#next-page-stock-required').data('page', data.next_page_number).show();
+                             } else {
+                                 $('#next-page-stock-required').hide();
+                             }
+         
+                             $('.pagination-stock-required span').text('Page ' + data.page_stock_required + ' of ' + data.total_pages_stock_required);
+                         }
+                     });
+                 }
+         
+                 $('#previous-page-stock-required').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManageRequired(pageNumber);
+                 });
+         
+                 $('#next-page-stock-required').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManageRequired(pageNumber);
+                     
+                 });
+    </script>
   </div>
 </div>
 {% comment %}the view inventory tab ends here {% endcomment %} {% comment %}the

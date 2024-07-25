@@ -386,7 +386,7 @@
                         <h4 class="ui image header">
                             <img src="{% static 'globals/img/zlatan.jpg' %}" class="ui mini circular image">
                         </h4>
-                        {{pre.id}}
+                        {{pre.user_id}}
                     </td>
 
                     <td style="white-space:nowrap;">
@@ -418,15 +418,19 @@
                 </tr>
                 {% endfor %}
                 <div class="pagination">
-                    
+                        {% if presc_hist.page.has_previous %}
                         <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}">Previous</button>
-                    
+                        {% else %}
+                        <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}" style="display:None">Previous</button>
+                        {% endif %}
             
                     <span>Page {{ presc_hist.page.number }} of {{ presc_hist.count}}</span>
             
-                    
+                        {% if presc_hist.page.has_next %}
                         <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
-                    
+                        {% else %}
+                        <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
+                        {% endif %}
                 </div>
                
 
@@ -508,13 +512,11 @@
                                 console.log("inside",$('#prescriptions-list'))
                                  $('#prescriptions-list').append(
                                      '<tr>' +
-                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.id + '</td>' +
+                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.user_id + '</td>' +
                                      '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.doctor_id + '</td>' +
                                      '<td style="white-space:nowrap;">' + prescription.date + '</td>' +
                                      '<td>' + prescription.details + '</td>' +
-                                     '<td>' + prescription.test + '</td>' +
-                                     '<td style="white-space:nowrap;"></td>' +
-                                       view_button_prescription.replace('0',prescription.id) + // Add any file handling logic here
+                                     view_button_prescription.replace('0',prescription.id) + // Add any file handling logic here
                                     '</tr>'
                                  );
                              });

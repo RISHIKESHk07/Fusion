@@ -824,15 +824,18 @@ def compounder_view_handler(request):
                  new_current_page = int(request.POST.get('page'))
                  new_offset = (new_current_page - 1) * page_size
                  new_report = []
-                 new_prescriptions = All_Prescription.objects.all()[new_offset:new_offset + page_size]
+                 new_prescriptions = All_Prescription.objects.all().order_by('-date', '-id')[new_offset:new_offset + page_size]
                  total_count = All_Prescription.objects.count()
                  total_pages = (total_count + page_size - 1) // page_size
+                 print(new_prescriptions)
                  for pre in new_prescriptions:
+                      doc = None
+                      if pre.doctor_id != None : doc=pre.doctor_id.doctor_name 
                       dic = {
                           'id': pre.pk,
                           'user_id': pre.user_id,
                           'date': pre.date,
-                          'doctor_id':(pre.doctor_id).doctor_name,
+                          'doctor_id':doc,
                           'details': pre.details,
                           'test': pre.test,
                           'file_id': pre.file_id,
@@ -882,7 +885,7 @@ def compounder_view_handler(request):
                 print('expired')
                 
                 new_page_size_stock_expired = 2
-                new_current_page_stock_expired = request.POST.get('page_stock_expired')
+                new_current_page_stock_expired = int(request.POST.get('page_stock_expired'))
                 new_offset_stock_expired = (new_current_page_stock_expired - 1 )* new_page_size_stock_expired
                 new_expired=[]
                 new_expiredData=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[new_offset_stock_expired:new_offset_stock_expired + new_page_size_stock_expired]
@@ -900,14 +903,37 @@ def compounder_view_handler(request):
                     new_expired.append(obj)
                 return JsonResponse({
                          'report_stock_expired': new_expired,
-                         'page_stock_view': new_current_page_stock_expired,
+                         'page_stock_expired': new_current_page_stock_expired,
                          'total_pages_stock_view': new_total_pages_stock_expired,
                          'has_previous': new_current_page_stock_expired > 1,
                          'has_next': new_current_page_stock_expired < new_total_pages_stock_expired,
                          'previous_page_number': new_current_page_stock_expired - 1 if new_current_page_stock_expired > 1 else None,
                          'next_page_number': new_current_page_stock_expired + 1 if new_current_page_stock_expired < new_total_pages_stock_expired else None,
                          })
-    
+    elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_required':
+                print('required')
+                
+                new_page_size_stock_required = 2
+                new_current_page_stock_required = int(request.POST.get('page_stock_required'))
+                new_offset_stock_required = (new_current_page_stock_required - 1 )* new_page_size_stock_required
+                new_required=[]
+                new_requiredData=Required_medicine.objects.all()[new_offset_stock_required:new_offset_stock_required + new_page_size_stock_required]
+                new_total_pages_stock_required = (Required_medicine.objects.all().count() + new_page_size_stock_required - 1) // new_page_size_stock_required
+                for e in new_requiredData:
+                    obj={}
+                    obj['medicine_id']=e.medicine_id.brand_name
+                    obj['quantity']=e.quantity
+                    obj['threshold']=e.threshold 
+                    new_required.append(obj)
+                return JsonResponse({
+                         'report_stock_required': new_required,
+                         'page_stock_required': new_current_page_stock_required,
+                         'total_pages_stock_required': new_total_pages_stock_required,
+                         'has_previous': new_current_page_stock_required > 1,
+                         'has_next': new_current_page_stock_required < new_total_pages_stock_required,
+                         'previous_page_number': new_current_page_stock_required - 1 if new_current_page_stock_required > 1 else None,
+                         'next_page_number': new_current_page_stock_required + 1 if new_current_page_stock_required < new_total_pages_stock_required else None,
+                         }) 
 
 
 def student_view_handler(request):
