@@ -90,22 +90,6 @@ def compounder_view(request):
             # expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
             # live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
             stocks = Required_medicine.objects.all()
-            
-
-            # for med in medicine:
-            #     obj={}
-            #     obj['medicine_name'] = med.medicine_name
-            #     obj['threshold'] = med.threshold
-            #     stk=Stock_entry.objects.filter(medicine_id=med)
-            #     qty=0
-            #     for s in stk:
-            #         if s.Expiry_date >= date.today():
-            #             try :
-            #                 qty+=Present_Stock.objects.get(stock_id=s).quantity
-            #             except:
-            #                 qty+=0
-            #     obj['quantity']=qty
-            #     stocks.append(obj)
 
             current_page_stock_expired = 1
             page_size_stock_expired = 2

@@ -13,6 +13,7 @@ DATABASES = {
         'HOST': os.environ.get("DB_HOST", default='localhost'),
         'USER': 'fusion_admin',
         'PASSWORD': 'hello123',
+        'PORT':'5434'
     }
 }
 

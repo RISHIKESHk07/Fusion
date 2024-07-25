@@ -363,13 +363,8 @@
                     <input type="button" id="printArea" name=""  value="Print Prescription" class="ui large right floated primary button" />               
                     <input type="button" id="add_followup" name=""  value="Add Follow-up" class="ui large right floated primary button" />             
 
-                    </div>
-               <div>
-                <div class="field">
-                    <label><br></label>
-                    <input type="button" id="printArea" name=""  value="Print" class="ui large right floated primary button" />
-
-               <div>
+                </div>
+               
                 <form id="followup_form" class="ui form" method="POST">{% csrf_token %}
                     <p id="usr_b"></p>
                        <div class="field">
@@ -588,26 +583,6 @@
                         button.style.display="none"
                         printButton.style.display="none"
                     })
-                    $('#printArea').click((e)=>{
-                        var printReport = document.getElementById("printingAreaTest").innerHTML;
-                         var iframe = document.createElement("iframe");
-                         iframe.style.position = "absolute";
-                         iframe.style.top = "-99999px"; // Move the iframe off-screen
-                         document.body.appendChild(iframe);
-                         var doc = iframe.contentWindow.document;
-                         doc.write(
-                           "<html><head><style>@media print { .avoid-page-break { page-break-inside: avoid; } } #printArea{ display:none; } #add_followup{display:none;} </style></head><body>" +
-                 printReport +
-                 "</body></html>"
-             );
-             doc.close();
-             iframe.contentWindow.focus();
-             iframe.contentWindow.print();
-             iframe.contentWindow.onafterprint = function () {
-               document.body.removeChild(iframe);
-               close();
-             };
-                })
                 $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
@@ -802,7 +777,7 @@
             {% comment %} <div class="row">
                 {% block sidepanel %} {% include 'notifications/sidepanel.html' with notifications=notifications %}
                 {% endblock %}
-            </div> {% endcomment %}<<<<<<< HEAD
+            </div> {% endcomment %}
         </div>
         {% comment %}The right-rail segment ends here!{% endcomment %}
 
