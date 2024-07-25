@@ -612,38 +612,47 @@ view stock tab starts here {% endcomment %}
         </tr>
       </thead>
 
-      <tbody>
-        {% for view in live_meds %}
+      <tbody id="view-stock-list">
+        {% for view in live_meds.page_stock_view.object_list %}
         <tr>
-          <td>{{view.medicine_id}}</td>
+
+            <td>
+               {{view.medicine_id}}
+            </td>
 
           <td>{{view.supplier}}</td>
 
           <td>{{view.Expiry_date}}</td>
 
-          <td>{{view.quantity}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% comment %}the view stock tab ends here {% endcomment %} {% comment %}the view
-stock tab starts here {% endcomment %}
-<div class="ui tab" data-tab="viewexpiredstock">
-  <div id="exmeds_print" class="ui vertical segment">
-    <table
-      class="ui very basic collapsing celled large fluid sortable table"
-      style="
-        padding-left: 2.5%;
-        padding-right: 2.5%;
-        padding-top: 1%;
-        padding-bottom: 1.5%;
-        margin: auto;
-      ">
-      <thead>
-        <tr>
-          <th class="two wide">Medicine</th>
+                    <td>
+                        {{view.quantity}}
+                    </td>
+
+                </tr>
+                {% endfor %}
+                </tbody>
+                <div id="pagination-stock-view" class="pagination-stock-view">
+                  <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="pagination-link">Previous</button>
+                  <span>Page {{ live_meds.page_stock_view.number }} of {{ live_meds.count_stock_view }}</span>
+                  <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="pagination-link">Next</button>
+              </div>
+            </table>
+        </div>
+    </div>
+    {% comment %}the view stock tab ends here {% endcomment %}
+
+    {% comment %}the view stock tab starts here {% endcomment %}
+    <div class="ui tab" data-tab="viewexpiredstock">
+        <div  id="exmeds_print" class="ui vertical segment" >
+
+
+            <table class="ui very basic collapsing celled large fluid sortable table"
+                   style="padding-left: 2.5%;padding-right: 2.5%;padding-top: 1%;padding-bottom: 1.5%;margin: auto;">
+                <thead>
+                <tr>
+                    <th class="two wide">
+                        Medicine
+                    </th>
 
           <th class="two wide">Quantity</th>
 
@@ -653,59 +662,66 @@ stock tab starts here {% endcomment %}
         </tr>
       </thead>
 
-      <tbody>
-        {% for view in expired %}
+      <tbody id="manage-stock-expired">
+        {% for view in exired.page_stock_expired.object_list %}
         <tr>
-          <td style="white-space: nowrap">{{view.medicine_id}}</td>
+
+            <td style="white-space:nowrap;">
+               {{view.medicine_id}}
+            </td>
 
           <td>{{view.quantity}}</td>
 
           <td>{{view.Expiry_date}}</td>
 
-          <td style="white-space: nowrap">{{view.supplier}}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <script type="text/javascript">
-      $("#returned").click(function (e) {
-        $.ajax({
-          type: "post",
-          url: "/healthcenter/compounder/",
-          data: {
-            csrfmiddlewaretoken: "{{ csrf_token }}",
-            id: $("#return_id").val(),
-            returned: $("#returned").val(),
-          },
-          success: function (data) {
-            $("#" + id)
-              .parent()
-              .parent()
-              .remove();
-            alert("returned medicine to supplier");
-          },
-        });
-      });
-    </script>
-  </div>
-</div>
-{% comment %}the view stock tab ends here {% endcomment %} {% comment %}the
-threshold stock tab starts here {% endcomment %}
-<div class="ui tab" data-tab="thresholdstock">
-  <div id="med_print" class="ui vertical segment">
-    <button
-      type="button"
-      id="pr_med"
-      name="PDF"
-      value="PDF"
-      class="ui primary button right floated">
-      <!-- Download -->
-      <i class="ui download icon right floated"></i>
-    </button>
+                    <td style="white-space:nowrap;">
+                        {{view.supplier}}
+                    </td>
 
-    <script>
-      $("#pr_med").click(function (e) {
-        var sTable = document.getElementById("med_print").innerHTML;
+                </tr>
+                {% endfor %}
+                <div id="pagination-stock-expired" class="pagination-stock-view">
+                  <button id="previous-page-stock-expired" data-page="{{ live_meds.page_stock_expired.previous_page_number }}" class="pagination-link">Previous</button>
+                  <span>Page {{ live_meds.page_stock_expired.number }} of {{ live_meds.count_stock_expired }}</span>
+                  <button id="next-page-stock-expired" data-page="{{ live_meds.page_stock_expired.next_page_number }}" class="pagination-link">Next</button>
+              </div>
+                </tbody>
+
+            </table>
+            <script type="text/javascript">
+                  $('#returned').click(function(e)
+                                                      {
+                                                        $.ajax({
+                                                          type:'post',
+                                                          url:'/healthcenter/compounder/',
+                                                          data: {
+                                                          csrfmiddlewaretoken: '{{ csrf_token }}',
+                                                          id:$("#return_id").val(),
+                                                          returned:$("#returned").val()
+                                                        },
+                                                          success: function(data){
+                                                            $('#'+id).parent().parent().remove();
+                                                            alert("returned medicine to supplier");
+
+                                                          }
+                                                      });
+                                                    });
+                </script>
+        </div>
+    </div>
+    {% comment %}the view stock tab ends here {% endcomment %}
+    
+        {% comment %}the threshold stock tab starts here {% endcomment %}
+        <div  class="ui tab" data-tab="thresholdstock">
+            <div id="med_print" class="ui vertical segment" >
+                <button type="button"  id="pr_med" name="PDF" value="PDF" class="ui primary button right floated">
+                    <!-- Download -->
+                    <i class="ui download icon right floated"></i>
+                </button>
+
+                <script>
+    $("#pr_med").click(function(e){
+        var sTable = document.getElementById('med_print').innerHTML;
 
         var style = "<style>";
         style = style + "table {width: 100%;font: 17px Calibri;}";
@@ -728,9 +744,116 @@ threshold stock tab starts here {% endcomment %}
 
         win.document.close(); // CLOSE THE CURRENT WINDOW.
 
-        win.print(); // PRINT THE CONTENTS.
-      });
-    </script>
+        win.print();    // PRINT THE CONTENTS.
+    });
+    // pagination logic for view stock here 
+    function loadPageManage(pageNumber) {
+                     $.ajax({
+                         url: '',
+                         type: 'POST',
+                         
+                         data: {
+                         csrfmiddlewaretoken: '{{ csrf_token }}',
+                         page_stock_view: pageNumber,
+                         datatype:'manage_stock_view'
+                         },
+                         success: function(data) {
+                             $('#view-stock-list').empty();
+                            
+                             $.each(data.report_stock_view, function(index, view) {
+                                console.log("view",data)
+                                 $('#view-stock-list').append(
+                                     '<tr>' +
+                                        '<td style="white-space:nowrap;">'+view.medicine_id +'</td>' +
+                                        '<td style="white-space:nowrap;">'+view.supplier +'</td>' +
+                                        '<td style="white-space:nowrap;">'+view.Expiry_date + '</td>' +
+                                        '<td style="white-space:nowrap;">'+view.quantity + '</td>' +
+                                        
+                    
+                                     '</tr>'
+                                 );
+                             });
+                             
+                             if (data.has_previous) {
+                                 $('#previous-page-stock').data('page', data.previous_page_number).show();
+                             } else {
+                                 $('#previous-page-stock').hide();
+                             }
+         
+                             if (data.has_next) {
+                                 $('#next-page-stock').data('page', data.next_page_number).show();
+                             } else {
+                                 $('#next-page-stock').hide();
+                             }
+         
+                             $('.pagination-stock-view span').text('Page ' + data.page_stock_view + ' of ' + data.total_pages_stock_view);
+                         }
+                     });
+                 }
+         
+                 $('#previous-page-stock').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManage(pageNumber);
+                 });
+         
+                 $('#next-page-stock').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManage(pageNumber);
+                     
+                 });
+
+                 function loadPageManageExpired(pageNumber) {
+                     $.ajax({
+                         url: '',
+                         type: 'POST',
+                         
+                         data: {
+                         csrfmiddlewaretoken: '{{ csrf_token }}',
+                         page_stock_expired: pageNumber,
+                         datatype:'manage_stock_expired'
+                         },
+                         success: function(data) {
+                             $('#view-stock-list-expired').empty();
+                            
+                             $.each(data.report_stock_view, function(index, view) {
+                                console.log("view",data)
+                                 $('#view-stock-list-expired').append(
+                                     '<tr>' +
+                                        
+                    
+                                     '</tr>'
+                                 );
+                             });
+                             
+                             if (data.has_previous) {
+                                 $('#previous-page-stock-expired').data('page', data.previous_page_number).show();
+                             } else {
+                                 $('#previous-page-stock-expired').hide();
+                             }
+         
+                             if (data.has_next) {
+                                 $('#next-page-stock-expired').data('page', data.next_page_number).show();
+                             } else {
+                                 $('#next-page-stock-expired').hide();
+                             }
+         
+                             $('.pagination-stock-expired span').text('Page ' + data.page_stock_expired + ' of ' + data.total_pages_stock_expired);
+                         }
+                     });
+                 }
+         
+                 $('#previous-page-stock-expired').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManageExpired(pageNumber);
+                 });
+         
+                 $('#next-page-stock-expired').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPageManageExpired(pageNumber);
+                     
+                 });
+
+</script>
 
     <table
       id="tblmeds"

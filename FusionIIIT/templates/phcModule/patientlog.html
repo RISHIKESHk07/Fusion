@@ -378,15 +378,15 @@
                 </tr>
                 </thead>
 
-                <tbody>
-                {% for pre in presc_hist %}
+                <tbody id="prescriptions-list">
+                {% for pre in presc_hist.page.object_list %}
                 <tr>
 
                     <td style="white-space:nowrap;">
                         <h4 class="ui image header">
                             <img src="{% static 'globals/img/zlatan.jpg' %}" class="ui mini circular image">
                         </h4>
-                        {{pre.user_id}}
+                        {{pre.id}}
                     </td>
 
                     <td style="white-space:nowrap;">
@@ -417,6 +417,17 @@
 
                 </tr>
                 {% endfor %}
+                <div class="pagination">
+                    
+                        <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}">Previous</button>
+                    
+            
+                    <span>Page {{ presc_hist.page.number }} of {{ presc_hist.count}}</span>
+            
+                    
+                        <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
+                    
+                </div>
                
 
                 </tbody>
@@ -478,7 +489,64 @@
 
 
     }
-    </script>
+        </script>
+
+         <script>
+                 function loadPage(pageNumber) {
+                     $.ajax({
+                         url: '/healthcenter/compounder/',
+                         type: 'POST',
+                         data: {
+                         csrfmiddlewaretoken: '{{ csrf_token }}',
+                         page: pageNumber,
+                         datatype: 'patientlog'
+                         },
+                         success: function(data) {
+                             $('#prescriptions-list').empty();
+                             const view_button_prescription = `<td><button class="view-followup-btn"><a style="color: white;" href='{% url 'healthcenter:view_prescription' prescription_id=0 %}'>View/Follow-up</a></button></td>` 
+                             $.each(data.report, function(index, prescription) {
+                                console.log("inside",$('#prescriptions-list'))
+                                 $('#prescriptions-list').append(
+                                     '<tr>' +
+                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.id + '</td>' +
+                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.doctor_id + '</td>' +
+                                     '<td style="white-space:nowrap;">' + prescription.date + '</td>' +
+                                     '<td>' + prescription.details + '</td>' +
+                                     '<td>' + prescription.test + '</td>' +
+                                     '<td style="white-space:nowrap;"></td>' +
+                                       view_button_prescription.replace('0',prescription.id) + // Add any file handling logic here
+                                    '</tr>'
+                                 );
+                             });
+                             
+                             if (data.has_previous) {
+                                 $('#previous-page').data('page', data.previous_page_number).show();
+                             } else {
+                                 $('#previous-page').hide();
+                             }
+         
+                             if (data.has_next) {
+                                 $('#next-page').data('page', data.next_page_number).show();
+                             } else {
+                                 $('#next-page').hide();
+                             }
+                            
+                             $('.pagination span').text('Page ' + data.page + ' of ' + data.total_pages);
+                         }
+                     });
+                 }
+         
+                 $('#previous-page').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPage(pageNumber);
+                 });
+         
+                 $('#next-page').click(function() {
+                    const pageNumber = $(this).data('page');
+                     loadPage(pageNumber);
+                     
+                 });
+         </script>
 
     </div>
 </div>

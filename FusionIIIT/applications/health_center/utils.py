@@ -31,9 +31,9 @@ def compounder_view_handler(request):
     '''
         handles rendering of pages for compounder view
     '''
-
+    print(request.POST.get('page'), 'page' in request.POST , 'datatype' in request.POST)
     # compounder response to patients feedback
-    if 'feed_com' in request.POST:                                 
+    if 'feed_com' in request.POST:
         pk = request.POST.get('com_id')
         feedback = request.POST.get('feed')
         comp_id = ExtraInfo.objects.select_related('user','department').filter(user_type='compounder')
@@ -817,13 +817,97 @@ def compounder_view_handler(request):
         formObject.save()
         healthcare_center_notif(usrnm, recipients , 'new_announce',formObject.message ) 
         data = {'status': 1}
-        return JsonResponse(data)       
-        
-
-        
-        
-        
-        
+        return JsonResponse(data)
+    elif 'datatype' in request.POST and request.POST['datatype'] == 'patientlog':
+                 print("patient")
+                 page_size = 2
+                 new_current_page = int(request.POST.get('page'))
+                 new_offset = (new_current_page - 1) * page_size
+                 new_report = []
+                 new_prescriptions = All_Prescription.objects.all()[new_offset:new_offset + page_size]
+                 total_count = All_Prescription.objects.count()
+                 total_pages = (total_count + page_size - 1) // page_size
+                 for pre in new_prescriptions:
+                      dic = {
+                          'id': pre.pk,
+                          'user_id': pre.user_id,
+                          'date': pre.date,
+                          'doctor_id':(pre.doctor_id).doctor_name,
+                          'details': pre.details,
+                          'test': pre.test,
+                          'file_id': pre.file_id,
+                          # 'file': view_file(file_id=pre.file_id)['upload_file'] if pre.file_id else None
+                      }
+                      new_report.append(dic)
+                 return JsonResponse({
+                         'report': new_report,
+                         'page': new_current_page,
+                         'total_pages': total_pages,
+                         'has_previous': new_current_page > 1,
+                         'has_next': new_current_page < total_pages,
+                         'previous_page_number': new_current_page - 1 if new_current_page > 1 else None,
+                         'next_page_number': new_current_page + 1 if new_current_page < total_pages else None,
+                         })     
+    elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_view':
+                 print("manage")
+                 page_size_stock = 2
+                 new_current_page_stock = int(request.POST.get('page_stock_view'))
+                 new_offset_stock = (new_current_page_stock - 1) * page_size_stock
+                 new_live_meds = []
+                 new_live =Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[new_offset_stock:new_offset_stock + page_size_stock]
+                 total_pages_stock = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + page_size_stock - 1) // page_size_stock
+                 for e in new_live:
+                     obj={}
+                     obj['id']=e.id
+                     obj['medicine_id']=e.medicine_id.brand_name
+                     obj['Expiry_date']=e.Expiry_date
+                     obj['supplier']=e.supplier
+                     try:
+                         qty=Present_Stock.objects.get(stock_id=e).quantity
+                     except:
+                         qty=0
+                     obj['quantity']=qty
+                     new_live_meds.append(obj)
+                 print(new_live_meds)    
+                 return JsonResponse({
+                         'report_stock_view': new_live_meds,
+                         'page_stock_view': new_current_page_stock,
+                         'total_pages_stock_view': total_pages_stock,
+                         'has_previous': new_current_page_stock > 1,
+                         'has_next': new_current_page_stock < total_pages_stock,
+                         'previous_page_number': new_current_page_stock - 1 if new_current_page_stock > 1 else None,
+                         'next_page_number': new_current_page_stock + 1 if new_current_page_stock < total_pages_stock else None,
+                         })
+    elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_expired':
+                print('expired')
+                
+                new_page_size_stock_expired = 2
+                new_current_page_stock_expired = request.POST.get('page_stock_expired')
+                new_offset_stock_expired = (new_current_page_stock_expired - 1 )* new_page_size_stock_expired
+                new_expired=[]
+                new_expiredData=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[new_offset_stock_expired:new_offset_stock_expired + new_page_size_stock_expired]
+                new_total_pages_stock_expired = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + new_page_size_stock_expired - 1) // new_page_size_stock_expired
+                for e in new_expiredData:
+                    obj={}
+                    obj['medicine_id']=e.medicine_id.brand_name
+                    obj['Expiry_date']=e.Expiry_date
+                    obj['supplier']=e.supplier
+                    try:
+                        qty=Present_Stock.objects.get(stock_id=e).quantity
+                    except:
+                        qty=0
+                    obj['quantity']=qty
+                    new_expired.append(obj)
+                return JsonResponse({
+                         'report_stock_expired': new_expired,
+                         'page_stock_view': new_current_page_stock_expired,
+                         'total_pages_stock_view': new_total_pages_stock_expired,
+                         'has_previous': new_current_page_stock_expired > 1,
+                         'has_next': new_current_page_stock_expired < new_total_pages_stock_expired,
+                         'previous_page_number': new_current_page_stock_expired - 1 if new_current_page_stock_expired > 1 else None,
+                         'next_page_number': new_current_page_stock_expired + 1 if new_current_page_stock_expired < new_total_pages_stock_expired else None,
+                         })
+    
 
 
 def student_view_handler(request):

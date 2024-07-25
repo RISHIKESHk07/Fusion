@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core import serializers
-from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from notification.views import  healthcare_center_notif
@@ -107,10 +107,13 @@ def compounder_view(request):
             #     obj['quantity']=qty
             #     stocks.append(obj)
 
-            exp= Stock_entry.objects.filter(Expiry_date__lt = date.today())
-            
+            current_page_stock_expired = 1
+            page_size_stock_expired = 2
+            offset_stock_expired = (current_page_stock_expired - 1 )* page_size_stock_expired
             expired=[]
-            for e in exp:
+            expiredData=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[offset_stock_expired:offset_stock_expired + page_size_stock_expired]
+            total_pages_stock_expired = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + page_size_stock_expired - 1) // page_size_stock_expired
+            for e in expiredData:
                 obj={}
                 obj['medicine_id']=e.medicine_id.brand_name
                 obj['Expiry_date']=e.Expiry_date
@@ -121,12 +124,31 @@ def compounder_view(request):
                     qty=0
                 obj['quantity']=qty
                 expired.append(obj)
+            ExpiredstockContext = {
+                     'count_stock_expired':total_pages_stock_expired,
+                     'page_stock_expired':{
+                           'object_list': expired,
+                           'number': current_page_stock_expired,
+                           'has_previous': current_page_stock_expired > 1,
+                           'has_next': current_page_stock_expired < total_pages_stock_expired,
+                           'previous_page_number': current_page_stock_expired - 1 if current_page_stock_expired > 1 else None,
+                           'next_page_number': current_page_stock_expired + 1 if current_page_stock_expired < total_pages_stock_expired else None,
+                     }
+            }      
+            
+            
+            
             
             # print("expire:::::")
             # for exp in exp:
             #     print(exp)
+            
+            current_page_stock = 1
+            page_size_stock = 2
+            offset_stock = (current_page_stock - 1 )* page_size_stock
             live_meds=[]
-            live=Stock_entry.objects.filter(Expiry_date__gte=date.today())
+            live=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[offset_stock:offset_stock + page_size_stock]
+            total_pages_stock = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + page_size_stock - 1) // page_size_stock
             for e in live:
                 obj={}
                 obj['id']=e.id
@@ -139,30 +161,65 @@ def compounder_view(request):
                     qty=0
                 obj['quantity']=qty
                 live_meds.append(obj)
+            stockContext = {
+                     'count_stock_view':total_pages_stock,
+                     'page_stock_view':{
+                           'object_list': live_meds,
+                           'number': current_page_stock,
+                           'has_previous': current_page_stock > 1,
+                           'has_next': current_page_stock < total_pages_stock,
+                           'previous_page_number': current_page_stock - 1 if current_page_stock > 1 else None,
+                           'next_page_number': current_page_stock + 1 if current_page_stock < total_pages_stock else None,
+                     }
+            }    
+            
+            
+            
+            
             schedule=Doctors_Schedule.objects.select_related('doctor_id').all().order_by('day','doctor_id')
             schedule1=Pathologist_Schedule.objects.select_related('pathologist_id').all().order_by('day','pathologist_id')
             
             doctors=Doctor.objects.filter(active=True).order_by('id')
             pathologists=Pathologist.objects.filter(active=True).order_by('id')
             medicine_presc = All_Prescribed_medicine.objects.all()
-            prescription= All_Prescription.objects.all().order_by('-date','-id')
-            report=[]
-            for pre in prescription:
-                dic={}
-                dic['id']=pre.pk
-                dic['user_id']=pre.user_id
-                dic['doctor_id'] = pre.doctor_id  # Use dot notation
-                dic['date'] = pre.date  # Use dot notation
-                dic['details'] = pre.details  # Use dot notation
-                dic['test'] = pre.test  # Use dot notation
-                dic['file_id'] = pre.file_id
-                # if pre.file_id:
-                #     dic['file'] = view_file(file_id=pre.file_id)['upload_file']
-                # else:
-                #     dic['file']=None 
-                report.append(dic)
-           
             
+            #Logic for the padination and view prescriptions is below , used ajax for pagination
+            current_page = 1
+            page_size = 2  # Default to 2 if not specified
+            offset = (current_page - 1) * page_size
+            # Fetch the prescriptions with limit and offset
+            prescriptions = All_Prescription.objects.all().order_by('-date', '-id')[offset:offset + page_size]
+            
+            report = []
+            for pre in prescriptions:
+                dic = {
+                    'id': pre.pk,
+                    'user_id': pre.user_id,
+                    'doctor_id': pre.doctor_id,
+                    'date': pre.date,
+                    'details': pre.details,
+                    'test': pre.test,
+                    'file_id': pre.file_id,
+                    # 'file': view_file(file_id=pre.file_id)['upload_file'] if pre.file_id else None
+                }
+                report.append(dic)
+            # Handle total count for pagination context
+            total_count = All_Prescription.objects.count()
+            # Calculate total number of pages
+            total_pages = (total_count + page_size - 1) // page_size  # This ensures rounding up
+            prescContext = {
+                'count': total_pages,
+                'page': {
+                    'object_list': report,
+                    'number': current_page,
+                    'has_previous': current_page > 1,
+                    'has_next': current_page < total_pages,
+                    'previous_page_number': current_page - 1 if current_page > 1 else None,
+                    'next_page_number': current_page + 1 if current_page < total_pages else None,
+                }
+            }
+            
+
              
             #adding file tracking inbox part for compounder
             
@@ -185,12 +242,11 @@ def compounder_view(request):
                        
             # print(inbox_files)
                       
-                        
             return render(request, 'phcModule/phc_compounder.html',
-                          {'days': days, 'users': users,'expired':expired,
+                          {'days': days, 'users': users,'expired':ExpiredstockContext,
                            'stocks': stocks,
                             'doctors': doctors, 'pathologists':pathologists, 
-                        'schedule': schedule, 'schedule1': schedule1, 'live_meds': live_meds, 'presc_hist': report,'inbox_files':inbox,'medicines_presc':medicine_presc})
+                        'schedule': schedule, 'schedule1': schedule1, 'live_meds': stockContext, 'presc_hist': prescContext,'inbox_files':inbox,'medicines_presc':medicine_presc})
     else:
         return HttpResponseRedirect("/healthcenter/student")                                      # compounder view ends
 

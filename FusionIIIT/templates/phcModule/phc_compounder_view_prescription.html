@@ -112,7 +112,26 @@
                          </select>
                      </div>
    
-                      <div class="field">
+                      <div class="field">handleprint() {
+    var printReport = document.getElementById("printArea").innerHTML;
+    var iframe = document.createElement("iframe");
+    iframe.style.position = "absolute";
+    iframe.style.top = "-99999px"; // Move the iframe off-screen
+    document.body.appendChild(iframe);
+    var doc = iframe.contentWindow.document;
+    doc.write(
+      "<html><head><title>Print</title><style>@media print { .avoid-page-break { page-break-inside: avoid; } }</style></head><body>" +
+        printReport +
+        "</body></html>"
+    );
+    doc.close();
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    iframe.contentWindow.onafterprint = function () {
+      document.body.removeChild(iframe);
+      close();
+    };
+  }
                         <label>Quantity</label>
                         <div class="ui fluid large input">
                             <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
@@ -340,9 +359,16 @@
                 {% endfor %}
                 <div class="field">
                     <label><br></label>
+
                     <input type="button" id="printArea" name=""  value="Print Prescription" class="ui large right floated primary button" />               
                     <input type="button" id="add_followup" name=""  value="Add Follow-up" class="ui large right floated primary button" />             
+
                     </div>
+               <div>
+                <div class="field">
+                    <label><br></label>
+                    <input type="button" id="printArea" name=""  value="Print" class="ui large right floated primary button" />
+
                <div>
                 <form id="followup_form" class="ui form" method="POST">{% csrf_token %}
                     <p id="usr_b"></p>
@@ -532,12 +558,35 @@
                     
                     var form = document.getElementById('followup_form')
                     form.style.display="none"
-                     
+            
+            
+            $('#printArea').click((e)=>{
+            var printReport = document.getElementById("printingAreaTest").innerHTML;
+             var iframe = document.createElement("iframe");
+             iframe.style.position = "absolute";
+             iframe.style.top = "-99999px"; // Move the iframe off-screen
+             document.body.appendChild(iframe);
+             var doc = iframe.contentWindow.document;
+             doc.write(
+               "<html><head><style>@media print { .avoid-page-break { page-break-inside: avoid; } } #printArea{ display:none; } #add_followup{display:none;} </style></head><body>" +
+                 printReport +
+                 "</body></html>"
+             );
+             doc.close();
+             iframe.contentWindow.focus();
+             iframe.contentWindow.print();
+             iframe.contentWindow.onafterprint = function () {
+               document.body.removeChild(iframe);
+               close();
+             };
+                })
                     $("#add_followup").click(function(e){
                         document.getElementById('printArea').style.display="none"
                         form.style.display="block"
                         var button = document.getElementById('add_followup')
+                        const printButton = document.getElementById('printArea')
                         button.style.display="none"
+                        printButton.style.display="none"
                     })
                     $('#printArea').click((e)=>{
                         var printReport = document.getElementById("printingAreaTest").innerHTML;
@@ -660,7 +709,9 @@
        </script>
        <script type="text/javascript">
                        $('#prescribe_b').click(function(e){
+
                                                         document.getElementById('printArea').style.display="block"
+
                                                        var user = document.getElementById('user').value;
                                                        var details = document.getElementById('details_b').value;
                                                        var tbl = document.getElementById('sched_b');
@@ -751,7 +802,7 @@
             {% comment %} <div class="row">
                 {% block sidepanel %} {% include 'notifications/sidepanel.html' with notifications=notifications %}
                 {% endblock %}
-            </div> {% endcomment %}
+            </div> {% endcomment %}<<<<<<< HEAD
         </div>
         {% comment %}The right-rail segment ends here!{% endcomment %}
 
