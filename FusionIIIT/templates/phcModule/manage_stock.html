@@ -325,8 +325,8 @@
   <br />
   <div class="extra segment"></div>
 </div>
-{% comment %}the add stock tab ends here {% endcomment %} {% comment %}the add
-medicine tab starts here {% endcomment %}
+{% comment %}the add stock tab ends here {% endcomment %} 
+{% comment %}the addmedicine tab starts here {% endcomment %}
 <div class="ui tab" data-tab="addmedicine">
   <p id="med_add"></p>
   <div class="ui vertical segment">
@@ -547,16 +547,24 @@ medicine tab starts here {% endcomment %}
   <br />
   <div class="extra segment"></div>
 </div>
-{% comment %}the add medicine tab ends here {% endcomment %} {% comment %}the
-view stock tab starts here {% endcomment %}
+{% comment %}the add medicine tab ends here {% endcomment %} 
+{% comment %}the view stock tab starts here {% endcomment %}
+
 <div class="ui tab" data-tab="viewlivestock">
+  <form class="ui form" style="margin-bottom: 20px;" id="search_view_stock">
+    <div class="field">
+        <div class="ui fluid large input">
+            <input placeholder="search" id="view_stock_search" name="patient_search" type="text">
+        </div>
+     </div>
+  </form>
   <div id="meds_print" class="ui vertical segment">
     <button
       type="button"
       id="pr_meds"
       name="PDF"
       value="PDF"
-      class="ui primary button left floated">
+      class="ui primary button right floated">
       <!-- Download -->
       <i class="ui download icon right floated"></i>
     </button>
@@ -651,13 +659,20 @@ view stock tab starts here {% endcomment %}
 
     {% comment %}the view stock tab starts here {% endcomment %}
     <div class="ui tab" data-tab="viewexpiredstock">
+      <form class="ui form" style="margin-bottom: 20px;" id="search_view_expired">
+        <div class="field">
+            <div class="ui fluid large input">
+                <input placeholder="search" id="view_expired_search" name="patient_search" type="text">
+            </div>
+         </div>
+      </form>
         <div  id="exmeds_print" class="ui vertical segment" >
           <button
           type="button"
           id="exp_meds"
           name="PDF"
           value="PDF"
-          class="ui primary button left floated">
+          class="ui primary button right floated">
           <!-- Download -->
           <i class="ui download icon right floated"></i>
         </button>
@@ -768,8 +783,15 @@ view stock tab starts here {% endcomment %}
     
         {% comment %}the threshold stock tab starts here {% endcomment %}
         <div  class="ui tab" data-tab="thresholdstock">
+          <form class="ui form" style="margin-bottom: 20px;" id="search_view_required">
+            <div class="field">
+                <div class="ui fluid large input">
+                    <input placeholder="search" id="view_required_search" name="patient_search" type="text">
+                </div>
+             </div>
+          </form>
             <div id="reqmed_print" class="ui vertical segment" >
-                <button type="button"  id="req_med" name="PDF" value="PDF" class="ui primary button left floated">
+                <button type="button"  id="req_med" name="PDF" value="PDF" class="ui primary button right floated">
                     <!-- Download -->
                     <i class="ui download icon right floated"></i>
                 </button>
@@ -801,7 +823,51 @@ view stock tab starts here {% endcomment %}
 
         win.print();    // PRINT THE CONTENTS.
     });
-    // pagination logic for view stock here 
+    // search logic for live stock
+    $('#search_view_stock').on('submit',function(e){
+      e.preventDefault();
+      alert('changed search')
+      $.ajax({
+        type: "post",
+        url: "/healthcenter/compounder/",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        search_view_stock: $("#view_stock_search").val(),
+                    },
+                    success: function(data){
+                        console.log(data)
+                        $('#view-stock-list').empty();
+                        $.each(data.stock_context.page_stock_view.object_list, function(index, view) {
+                          $('#view-stock-list').append(
+                            '<tr>' +
+                              '<td style="white-space:nowrap;">'+view.medicine_id +'</td>' +
+                              '<td style="white-space:nowrap;">'+view.supplier +'</td>' +
+                              '<td style="white-space:nowrap;">'+view.Expiry_date + '</td>' +
+                              '<td style="white-space:nowrap;">'+view.quantity + '</td>' +
+                              
+                              
+                              '</tr>'
+                            );
+                          });
+                          
+                          if (data.stock_context.page_stock_view.has_previous) {
+                            $('#previous-page-stock').data('page', data.stock_context.page_stock_view.previous_page_number).show();
+                          } else {
+                            $('#previous-page-stock').hide();
+                          }
+                          
+                          if (data.stock_context.page_stock_view.has_next) {
+                            $('#next-page-stock').data('page', data.stock_context.page_stock_view.next_page_number).show();
+                          } else {
+                            $('#next-page-stock').hide();
+                          }
+                          
+                          $('.pagination-stock-view span').text('Page ' + data.stock_context.page_stock_view.number + ' of ' + data.stock_context.count_stock_view);
+                          
+                        }
+                      })
+                    })
+    // pagination logic for view stock here
     function loadPageManage(pageNumber) {
                      $.ajax({
                          url: '',
@@ -810,9 +876,11 @@ view stock tab starts here {% endcomment %}
                          data: {
                          csrfmiddlewaretoken: '{{ csrf_token }}',
                          page_stock_view: pageNumber,
+                         search_view_stock: $("#view_stock_search").val(),
                          datatype:'manage_stock_view'
                          },
                          success: function(data) {
+                          console.log(data)
                              $('#view-stock-list').empty();
                             
                              $.each(data.report_stock_view, function(index, view) {
@@ -856,7 +924,48 @@ view stock tab starts here {% endcomment %}
                      loadPageManage(pageNumber);
                      
                  });
-
+      $('#search_view_expired').on('submit',function(e){
+      e.preventDefault();
+      alert('changed search')
+                  $.ajax({
+                    type: "post",
+                    url: "/healthcenter/compounder/",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        search_view_expired: $("#view_expired_search").val(),
+                    },
+                    success: function(data){
+                      $('#manage-stock-expired').empty();
+                            
+                            $.each(data.expired_context.page_stock_expired.object_list, function(index, view) {
+                                $('#manage-stock-expired').append(
+                                    '<tr>' +
+                                       '<td>'+view.medicine_id+'</td>'+
+                                       '<td>'+view.quantity+'</td>'+
+                                       '<td>'+view.Expiry_date+'</td>'+
+                                       '<td>'+view.supplier+'</td>'+
+                                    '</tr>'
+                                );
+                            });
+                            
+                            if (data.expired_context.page_stock_expired.has_previous) {
+                                $('#previous-page-stock-expired').data('page', data.expired_context.page_stock_expired.previous_page_number).show();
+                            } else {
+                                $('#previous-page-stock-expired').hide();
+                            }
+        
+                            if (data.expired_context.page_stock_expired.has_next) {
+                                $('#next-page-stock-expired').data('page', data.expired_context.page_stock_expired.next_page_number).show();
+                            } else {
+                                $('#next-page-stock-expired').hide();
+                            }
+        
+                            $('.pagination-stock-expired span').text('Page ' + data.expired_context.page_stock_expired.number + ' of ' + data.expired_context.count_stock_expired);
+                          
+                        }
+                      })
+                    })
+                
                  function loadPageManageExpired(pageNumber) {
                      $.ajax({
                          url: '',
@@ -865,6 +974,7 @@ view stock tab starts here {% endcomment %}
                          data: {
                          csrfmiddlewaretoken: '{{ csrf_token }}',
                          page_stock_expired: pageNumber,
+                         search_view_expired: $("#view_expired_search").val(),
                          datatype:'manage_stock_expired'
                          },
                          success: function(data) {
@@ -957,6 +1067,46 @@ view stock tab starts here {% endcomment %}
       </tbody>
     </table>
     <script type="text/javascript">
+      $('#search_view_required').on('submit',function(e){
+      e.preventDefault();
+      alert('changed search')
+                  $.ajax({
+                    type: "post",
+                    url: "/healthcenter/compounder/",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        search_view_required: $("#view_required_search").val(),
+                    },
+                    success: function(data){
+                      $('#req_med_tabel').empty();
+                            
+                            $.each(data.stocks.page_stock_required.object_list, function(index, view) {
+                               console.log("view",data)
+                                $('#req_med_tabel').append(
+                                    '<tr>' +
+                                       "<td>"+view.medicine_id +"</td>"+
+                                       "<td>"+view.quantity+"</td>"+
+                                       "<td>"+view.threshold+"</td>"+                    
+                                    '</tr>'
+                                );
+                            });
+                            
+                            if (data.stocks.page_stock_required.has_previous) {
+                                $('#previous-page-stock-required').data('page', data.stocks.page_stock_required.previous_page_number).show();
+                            } else {
+                                $('#previous-page-stock-required').hide();
+                            }
+        
+                            if (data.stocks.page_stock_required.has_next) {
+                                $('#next-page-stock-required').data('page', data.stocks.page_stock_required.next_page_number).show();
+                            } else {
+                                $('#next-page-stock-required').hide();
+                            }
+        
+                            $('.pagination-stock-required span').text('Page ' + data.stocks.page_stock_required.number + ' of ' + data.stocks.count_stock_required);
+                        }
+                      })
+                    })
       function loadPageManageRequired(pageNumber) {
                      $.ajax({
                          url: '',
@@ -965,6 +1115,7 @@ view stock tab starts here {% endcomment %}
                          data: {
                          csrfmiddlewaretoken: '{{ csrf_token }}',
                          page_stock_required: pageNumber,
+                         search_view_required: $("#view_required_search").val(),
                          datatype:'manage_stock_required'
                          },
                          success: function(data) {
@@ -1011,8 +1162,8 @@ view stock tab starts here {% endcomment %}
     </script>
   </div>
 </div>
-{% comment %}the view inventory tab ends here {% endcomment %} {% comment %}the
-edit threshold tab starts here{% endcomment %}
+{% comment %}the view inventory tab ends here {% endcomment %}
+{% comment %}the edit threshold tab starts here{% endcomment %}
 <div class="ui tab" data-tab="EditThreshold">
   <p id="change_threshold"></p>
   <div class="ui vertical segment">

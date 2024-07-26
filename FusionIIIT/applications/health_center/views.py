@@ -730,7 +730,7 @@ def compounder_view_prescription(request,prescription_id):
     prescription = All_Prescription.objects.get(id=prescription_id)
     pre_medicine = All_Prescribed_medicine.objects.filter(prescription_id=prescription)
     doctors=Doctor.objects.filter(active=True).order_by('id')
-    follow_presc =Prescription_followup.objects.filter(prescription_id=prescription)
+    follow_presc =Prescription_followup.objects.filter(prescription_id=prescription).order_by('-id')
     if request.method == "POST":
         print("post")
     return render(request, 'phcModule/phc_compounder_view_prescription.html',{'prescription':prescription,

@@ -819,15 +819,15 @@ def compounder_view_handler(request):
         data = {'status': 1}
         return JsonResponse(data)
     elif 'datatype' in request.POST and request.POST['datatype'] == 'patientlog':
+                 search = request.POST.get('search_patientlog')
                  print("patient")
                  page_size = 2
                  new_current_page = int(request.POST.get('page'))
                  new_offset = (new_current_page - 1) * page_size
                  new_report = []
-                 new_prescriptions = All_Prescription.objects.all().order_by('-date', '-id')[new_offset:new_offset + page_size]
-                 total_count = All_Prescription.objects.count()
+                 new_prescriptions = All_Prescription.objects.filter(Q(user_id__icontains = search) | Q(details__icontains = search)).order_by('-date', '-id')[new_offset:new_offset + page_size]
+                 total_count = All_Prescription.objects.filter(Q(user_id__icontains = search) | Q(details__icontains = search)).count()
                  total_pages = (total_count + page_size - 1) // page_size
-                 print(new_prescriptions)
                  for pre in new_prescriptions:
                       doc = None
                       if pre.doctor_id != None : doc=pre.doctor_id.doctor_name 
@@ -852,44 +852,45 @@ def compounder_view_handler(request):
                          'next_page_number': new_current_page + 1 if new_current_page < total_pages else None,
                          })     
     elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_view':
-                 print("manage")
-                 page_size_stock = 2
-                 new_current_page_stock = int(request.POST.get('page_stock_view'))
-                 new_offset_stock = (new_current_page_stock - 1) * page_size_stock
-                 new_live_meds = []
-                 new_live =Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[new_offset_stock:new_offset_stock + page_size_stock]
-                 total_pages_stock = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + page_size_stock - 1) // page_size_stock
-                 for e in new_live:
-                     obj={}
-                     obj['id']=e.id
-                     obj['medicine_id']=e.medicine_id.brand_name
-                     obj['Expiry_date']=e.Expiry_date
-                     obj['supplier']=e.supplier
-                     try:
-                         qty=Present_Stock.objects.get(stock_id=e).quantity
-                     except:
-                         qty=0
-                     obj['quantity']=qty
-                     new_live_meds.append(obj)
-                 print(new_live_meds)    
-                 return JsonResponse({
-                         'report_stock_view': new_live_meds,
-                         'page_stock_view': new_current_page_stock,
-                         'total_pages_stock_view': total_pages_stock,
-                         'has_previous': new_current_page_stock > 1,
-                         'has_next': new_current_page_stock < total_pages_stock,
-                         'previous_page_number': new_current_page_stock - 1 if new_current_page_stock > 1 else None,
-                         'next_page_number': new_current_page_stock + 1 if new_current_page_stock < total_pages_stock else None,
-                         })
+                search = request.POST.get('search_view_stock')
+                print("manage")
+                page_size_stock = 2
+                new_current_page_stock = int(request.POST.get('page_stock_view'))
+                new_offset_stock = (new_current_page_stock - 1) * page_size_stock
+                new_live_meds = []
+                new_live =Stock_entry.objects.filter(Q(Expiry_date__gte=date.today()) & Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).order_by('Expiry_date')[new_offset_stock:new_offset_stock + page_size_stock]
+                total_pages_stock = ( Stock_entry.objects.filter(Q(Expiry_date__gte=date.today()) & Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).count()  + page_size_stock - 1) // page_size_stock
+                for e in new_live:
+                    obj={}
+                    obj['id']=e.id
+                    obj['medicine_id']=e.medicine_id.brand_name
+                    obj['Expiry_date']=e.Expiry_date
+                    obj['supplier']=e.supplier
+                    try:
+                        qty=Present_Stock.objects.get(stock_id=e).quantity
+                    except:
+                        qty=0
+                    obj['quantity']=qty
+                    new_live_meds.append(obj)
+                print(new_live_meds)    
+                return JsonResponse({
+                        'report_stock_view': new_live_meds,
+                        'page_stock_view': new_current_page_stock,
+                        'total_pages_stock_view': total_pages_stock,
+                        'has_previous': new_current_page_stock > 1,
+                        'has_next': new_current_page_stock < total_pages_stock,
+                        'previous_page_number': new_current_page_stock - 1 if new_current_page_stock > 1 else None,
+                        'next_page_number': new_current_page_stock + 1 if new_current_page_stock < total_pages_stock else None,
+                        })
     elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_expired':
                 print('expired')
-                
+                search = request.POST.get('search_view_expired')
                 new_page_size_stock_expired = 2
                 new_current_page_stock_expired = int(request.POST.get('page_stock_expired'))
                 new_offset_stock_expired = (new_current_page_stock_expired - 1 )* new_page_size_stock_expired
                 new_expired=[]
-                new_expiredData=Stock_entry.objects.filter(Expiry_date__gte=date.today()).order_by('Expiry_date')[new_offset_stock_expired:new_offset_stock_expired + new_page_size_stock_expired]
-                new_total_pages_stock_expired = ( Stock_entry.objects.filter(Expiry_date__gte=date.today()).count()  + new_page_size_stock_expired - 1) // new_page_size_stock_expired
+                new_expiredData=Stock_entry.objects.filter(Q(Expiry_date__lt=date.today())&Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).order_by('Expiry_date')[new_offset_stock_expired:new_offset_stock_expired + new_page_size_stock_expired]
+                new_total_pages_stock_expired = ( Stock_entry.objects.filter(Q(Expiry_date__lt=date.today())&Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).count()  + new_page_size_stock_expired - 1) // new_page_size_stock_expired
                 for e in new_expiredData:
                     obj={}
                     obj['medicine_id']=e.medicine_id.brand_name
@@ -912,13 +913,13 @@ def compounder_view_handler(request):
                          })
     elif 'datatype' in request.POST and request.POST['datatype'] == 'manage_stock_required':
                 print('required')
-                
+                search = request.POST.get('search_view_required')
                 new_page_size_stock_required = 2
                 new_current_page_stock_required = int(request.POST.get('page_stock_required'))
                 new_offset_stock_required = (new_current_page_stock_required - 1 )* new_page_size_stock_required
                 new_required=[]
-                new_requiredData=Required_medicine.objects.all()[new_offset_stock_required:new_offset_stock_required + new_page_size_stock_required]
-                new_total_pages_stock_required = (Required_medicine.objects.all().count() + new_page_size_stock_required - 1) // new_page_size_stock_required
+                new_requiredData=Required_medicine.objects.filter( Q(medicine_id__brand_name__icontains = search))[new_offset_stock_required:new_offset_stock_required + new_page_size_stock_required]
+                new_total_pages_stock_required = (Required_medicine.objects.filter( Q(medicine_id__brand_name__icontains = search)).count() + new_page_size_stock_required - 1) // new_page_size_stock_required
                 for e in new_requiredData:
                     obj={}
                     obj['medicine_id']=e.medicine_id.brand_name
@@ -933,8 +934,137 @@ def compounder_view_handler(request):
                          'has_next': new_current_page_stock_required < new_total_pages_stock_required,
                          'previous_page_number': new_current_page_stock_required - 1 if new_current_page_stock_required > 1 else None,
                          'next_page_number': new_current_page_stock_required + 1 if new_current_page_stock_required < new_total_pages_stock_required else None,
-                         }) 
-
+                         })
+    
+    elif 'search_patientlog' in request.POST:
+        search = request.POST.get('search_patientlog')
+        current_page = 1
+        page_size_prescription = 2  # Default to 2 if not specified
+        offset = (current_page - 1) * page_size_prescription
+        prescriptions = All_Prescription.objects.filter(Q(user_id__icontains = search) | Q(details__icontains = search)).order_by('-date', '-id')[offset:offset + page_size_prescription]
+            
+        report = []
+        for pre in prescriptions:
+            dic = {
+                'id': pre.pk,
+                'user_id': pre.user_id,
+                'doctor_id': pre.doctor_id,
+                'date': pre.date,
+                'details': pre.details,
+                'test': pre.test,
+                'file_id': pre.file_id,
+                    # 'file': view_file(file_id=pre.file_id)['upload_file'] if pre.file_id else None
+                }
+            report.append(dic)
+        print(report)
+            # Handle total count for pagination context
+        total_count = All_Prescription.objects.filter(Q(user_id__icontains = search) | Q(details__icontains = search)).count()
+        print(total_count)
+            # Calculate total number of pages
+        total_pages = (total_count + page_size_prescription - 1) // page_size_prescription  # This ensures rounding up
+        prescContext = {
+            'count': total_pages,
+            'page': {
+                'object_list': report,
+                'number': current_page,
+                'has_previous': current_page > 1,
+                'has_next': current_page < total_pages,
+                'previous_page_number': current_page - 1 if current_page > 1 else None,
+                'next_page_number': current_page + 1 if current_page < total_pages else None,
+            }
+        }
+        return JsonResponse({'status':1,"presc_context":prescContext})
+    elif 'search_view_stock' in request.POST:
+        search = request.POST.get('search_view_stock')
+        print("search")
+        print(search)
+        current_page_stock = 1
+        page_size_stock = 2
+        offset_stock = (current_page_stock - 1 )* page_size_stock
+        live_meds=[]
+        live=Stock_entry.objects.filter(Q(Expiry_date__gte=date.today()) & Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).order_by('Expiry_date')[offset_stock:offset_stock + page_size_stock]
+        total_pages_stock = ( Stock_entry.objects.filter(Q(Expiry_date__gte=date.today()) & Q(Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).count()  + page_size_stock - 1) // page_size_stock
+        for e in live:
+            obj={}
+            obj['id']=e.id
+            obj['medicine_id']=e.medicine_id.brand_name
+            obj['Expiry_date']=e.Expiry_date
+            obj['supplier']=e.supplier
+            try:
+                qty=Present_Stock.objects.get(stock_id=e).quantity
+            except:
+                qty=0
+            obj['quantity']=qty
+            live_meds.append(obj)
+        stockContext = {
+                 'count_stock_view':total_pages_stock,
+                 'page_stock_view':{
+                       'object_list': live_meds,
+                       'number': current_page_stock,
+                       'has_previous': current_page_stock > 1,
+                       'has_next': current_page_stock < total_pages_stock,
+                       'previous_page_number': current_page_stock - 1 if current_page_stock > 1 else None,
+                       'next_page_number': current_page_stock + 1 if current_page_stock < total_pages_stock else None,
+                 }
+        }
+        return JsonResponse({'status':1,'stock_context':stockContext})
+    elif 'search_view_expired' in request.POST:
+        search = request.POST.get('search_view_expired')
+        current_page_stock_expired = 1
+        page_size_stock_expired = 2
+        offset_stock_expired = (current_page_stock_expired - 1 )* page_size_stock_expired
+        expired=[]
+        expiredData=Stock_entry.objects.filter(Q(Expiry_date__lt=date.today())&Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).order_by('Expiry_date')[offset_stock_expired:offset_stock_expired + page_size_stock_expired]
+        total_pages_stock_expired = ( Stock_entry.objects.filter(Q(Expiry_date__lt=date.today())&Q( Q(medicine_id__brand_name__icontains = search) | Q(supplier__icontains = search))).count()  + page_size_stock_expired - 1) // page_size_stock_expired
+        for e in expiredData:
+            obj={}
+            obj['medicine_id']=e.medicine_id.brand_name
+            obj['Expiry_date']=e.Expiry_date
+            obj['supplier']=e.supplier
+            try:
+                qty=Present_Stock.objects.get(stock_id=e).quantity
+            except:
+                qty=0
+            obj['quantity']=qty
+            expired.append(obj)
+        ExpiredstockContext = {
+                'count_stock_expired':total_pages_stock_expired,
+                'page_stock_expired':{
+                    'object_list': expired,
+                    'number': current_page_stock_expired,
+                    'has_previous': current_page_stock_expired > 1,
+                    'has_next': current_page_stock_expired < total_pages_stock_expired,
+                    'previous_page_number': current_page_stock_expired - 1 if current_page_stock_expired > 1 else None,
+                    'next_page_number': current_page_stock_expired + 1 if current_page_stock_expired < total_pages_stock_expired else None,
+                }
+        }
+        return JsonResponse({'status':1,'expired_context':ExpiredstockContext})
+    elif 'search_view_required' in request.POST:
+        search = request.POST.get('search_view_required')
+        current_required_page = 1
+        page_size_required = 2
+        offset_stock_required = (current_required_page - 1 )* page_size_required
+        required_data = Required_medicine.objects.filter( Q(medicine_id__brand_name__icontains = search) )[offset_stock_required:offset_stock_required + page_size_required]
+        total_pages_stock_required = (Required_medicine.objects.filter( Q(medicine_id__brand_name__icontains = search) ).count() + page_size_required -1) // page_size_required
+        required=[]
+        for e in required_data:
+            obj={}
+            obj['medicine_id']=e.medicine_id.brand_name
+            obj['quantity']=e.quantity
+            obj['threshold'] = e.threshold
+            required.append(obj)
+        stocks = {
+            "count_stock_required" : total_pages_stock_required,
+            "page_stock_required":{
+                "object_list":required, 
+                'number' : current_required_page,
+                'has_previous' : current_required_page > 1 ,
+                'has_next': current_required_page < total_pages_stock_required,
+                'previous_page_number' :  current_required_page - 1 if current_required_page > 1 else None,
+                'next_page_number' :  current_required_page + 1 if current_required_page < total_pages_stock_required else None,      
+            }
+        }
+    return JsonResponse({'status':1,'stocks':stocks})
 
 def student_view_handler(request):
     if 'amb_submit' in request.POST:

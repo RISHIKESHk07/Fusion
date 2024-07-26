@@ -20,9 +20,9 @@
                 <p id="usr_b"></p>
                 <div class="two fields">
                   <div class="field">
-                      <label>User</label>
+                      <label>Paient</label>
                       <div class="ui fluid large input">
-                          <input placeholder="User Id" id="patient_b" name="patient_b" type="text">
+                          <input placeholder="Patient Id" id="patient_b" name="patient_b" type="text">
                       </div>
                    </div>
 
@@ -75,13 +75,13 @@
                     <div class="field">
                         <label>Manufacturer Name</label>
                         <div>
-                            <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;">
+                            <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;" readonly>
                         </div>
                      </div>
                      <div class="field">
                         <label>Pack Size</label>
                         <div>
-                            <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;">
+                            <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;" readonly>
                         </div>
                      </div>
                   </div>
@@ -354,6 +354,13 @@
 
 <div class="ui tab" data-tab="prescriptionhistory">
         <div class="ui vertical segment" >
+            <form class="ui form" style="margin-bottom: 20px;" id="search_patientlog">
+                <div class="field">
+                    <div class="ui fluid large input">
+                        <input placeholder="search" id="patient_search" name="patient_search" type="text">
+                    </div>
+                 </div>
+            </form>
             <table  border=1 class="ui very basic collapsing celled large sortable table"
                   style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;" >
                 <thead>
@@ -496,6 +503,49 @@
         </script>
 
          <script>
+            $('#search_patientlog').on('submit',function(e){
+                e.preventDefault();
+                alert('changed search')
+                $.ajax({
+                    type: "post",
+                    url: "/healthcenter/compounder/",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        search_patientlog: $("#patient_search").val(),
+                    },
+                    success: function(data){
+                        console.log(data)
+                        $('#prescriptions-list').empty();
+                        const view_button_prescription = `<td><button class="view-followup-btn"><a style="color: white;" href='{% url 'healthcenter:view_prescription' prescription_id=0 %}'>View/Follow-up</a></button></td>` 
+                        $.each( data.presc_context.page.object_list , function(index, prescription) {
+                                console.log("inside",$('#prescriptions-list'))
+                                 $('#prescriptions-list').append(
+                                     '<tr>' +
+                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.user_id + '</td>' +
+                                     '<td style="white-space:nowrap;"><h4 class="ui image header"><img src="{% static "globals/img/zlatan.jpg" %}" class="ui mini circular image"></h4>' + prescription.doctor_id + '</td>' +
+                                     '<td style="white-space:nowrap;">' + prescription.date + '</td>' +
+                                     '<td>' + prescription.details + '</td>' +
+                                     view_button_prescription.replace('0',prescription.id) + // Add any file handling logic here
+                                    '</tr>'
+                                 );
+                             });
+                             if (data.presc_context.page.has_previous) {
+                                 $('#previous-page').data('page', data.presc_context.page.previous_page_number).show();
+                             } else {
+                                 $('#previous-page').hide();
+                             }
+         
+                             if (data.presc_context.page.has_next) {
+                                 $('#next-page').data('page', data.presc_context.page.next_page_number).show();
+                             } else {
+                                 $('#next-page').hide();
+                             }
+                            
+                             $('.pagination span').text('Page ' + data.presc_context.page.number + ' of ' + data.presc_context.count);
+                        
+                    }
+                })
+            })
                  function loadPage(pageNumber) {
                      $.ajax({
                          url: '/healthcenter/compounder/',
@@ -503,6 +553,7 @@
                          data: {
                          csrfmiddlewaretoken: '{{ csrf_token }}',
                          page: pageNumber,
+                         search_patientlog: $("#patient_search").val(),
                          datatype: 'patientlog'
                          },
                          success: function(data) {

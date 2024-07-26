@@ -63,7 +63,7 @@ class All_Medicine(models.Model):
     pack_size_label = models.CharField(max_length=1000,default="NOT_SET", null=True)
 
     def __str__(self):
-        return self.medicine_name
+        return self.brand_name
     
 class Stock_entry(models.Model):
     medicine_id = models.ForeignKey(All_Medicine, on_delete=models.CASCADE)
@@ -92,7 +92,7 @@ class Present_Stock(models.Model):
     # generic_name = models.CharField(max_length=80)
 
     def __str__(self):
-        return str(self.Expiry_date)+" "+self.stock_id.supplier
+        return str(self.Expiry_date)
 
 class Doctors_Schedule(models.Model):
     doctor_id = models.ForeignKey(Doctor,on_delete=models.CASCADE)
