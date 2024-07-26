@@ -55,21 +55,374 @@
         <div class="eight wide column">
 
             {% comment %}The ap `pointment approval tab starts here!{% endcomment %}
-            <div class="ui active tab segment" style='height:650px;width:820px;overflow-x:scroll;' id="printingAreaTest">
+            <div class="ui active tab segment" style='height:650px;width:820px;overflow-x:scroll;display: flex;flex-direction: column;' id="whole_prescription">
                 <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
                 {% block patientlog %}
                 <div class="ui vertical stripe team segment"
                 style="padding-left: 3.5%;
                    padding-right: 3.5%;">
+                    <div>
+                        <p style="font-size: 2rem;font-weight: 700;">{{prescription.user_id}}'s Prescription History</p>
+                    </div>
+                    <div class="hidden_print">
+                        <div id="util_btns" style="height: 85px;display: flex;flex-direction: column;gap: 10px;margin-top: 15px;">
+                            <div>
+                                <button id="add_followup" class="ui medium primary button">Add Follow-up</button> 
+                            </div>            
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div id="print_options">
+                                    <div>
+                                        <input type="checkbox" id="print_lat_follow_up" name="print_lat_follow_up" value="print_lat_follow_up" checked onchange="printHandleChange(this)">
+                                        <label for="print_lat_follow_up">Print Latest Follow-up</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="print_whole_prescription" name="print_whole_prescription" value="print_whole_prescription" onchange="printHandleChange(this)">
+                                        <label for="print_whole_prescription">Print Whole Prescription</label>
+                                    </div>
+                                </div>
+                                <button id="print_button" class="ui medium primary button">Print</button>
+                            </div>   
+                        </div>
+                    </div>
+                    <form id="followup_form" class="ui form hidden_print" method="POST">{% csrf_token %}
+                        <p id="usr_b"></p>
+                           <div class="field">
+                            <label>Doctor</label>
+                            <select class="ui search fluid dropdown" name="doctor_b" id="doctor_b" required="true">
+                              <option value="" disabled selected>--SELECT--</option>
+                              {% for doctor in doctors %}
+                              <option value="{{doctor.id}}">{{doctor.doctor_name}}</option>
+                              {% endfor %}
+                            </select>
+                            </div>
+        
+                        <div class="field">
+                            <label>Detail of Disease</label>
+                            <textarea name="details" id="details_b" rows="2"></textarea>
+                        </div>
+    
+                        <table  class="ui very basic collapsing celled small fluid sortable table"
+                               style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                            <thead>
+                            <tr>
+                                <th class="two wide">
+                                    Medicine id
+                                </th>
+                                <th class="two wide">
+                                    Medicine
+                                </th>
+        
+                                <th class="two wide" >
+                                    Quantity
+                                </th>
+        
+                                <th class="wide">
+                                    Days
+                                </th>
+                                <th class="wide">
+                                    Times
+                                </th>
+                                <th class="wide">
+                                    Stock
+                                </th>
+                                <th class="wide">
+                                    revoke
+                                </th>
+                            </tr>
+                            </thead>
+        
+                            <tbody id="non_revoked">
+                                {% for med in pre_medicine %}
+                                {% if med.revoked == False %}
+                                <tr>
+                                    <td>
+                                        {{med.id}}
+                                    </td>
+                                    <td>
+                                        {{med.medicine_id.brand_name}}
+                                    </td>
+                                    <td>
+                                        {{med.quantity}}
+                                    </td>
+                                    <td>
+                                        {{med.days}}
+                                    </td>
+                                    <td>
+                                        {{med.times}}
+                                    </td>
+                                    <td>
+                                        {{med.stock}}
+                                    </td>
+                                    <td>
+                                        <label id="" for="{{med.id}}" value="">
+                                            <input type="checkbox" id="{{med.id}}" name="{{med.id}}" value="revoke">
+                                        </label>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+     
+                        <div class="flex flex-col">
+                            <div class="field">
+                                  <label>Medicine</label>
+                                      <div class="flex" style="gap: 10px;">
+                                          <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list" />
+                                          <input type="button" id="medicine_search_b" name="medicine_search_b" value="Search" class="ui small primary button" />
+                                      </div>
+                                  <datalist id="med_list">
+                                  </datalist>
+                            </div>
+          
+                            <div class="flex">
+                              <div class="field">
+                                  <label>Manufacturer Name</label>
+                                  <div>
+                                      <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;">
+                                  </div>
+                               </div>
+                               <div class="field">
+                                  <label>Pack Size</label>
+                                  <div>
+                                      <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;">
+                                  </div>
+                               </div>
+                            </div>
+          
+                             <div class="flex w-full">
+                              <div class="field">
+                                  <label>Quantity</label>
+                                  <div class="">
+                                      <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
+             
+                                  </div>
+                               </div>
+                                 <div class="field">
+                                   <label>No of days</label>
+                                   <div class="">
+                                       <input placeholder="No of days" id="days_b" name="days_b" type="number">
+             
+                                   </div>
+                                  </div>
+                                  <div class="field">
+                                    <label>Times per day</label>
+                                    <div class="">
+                                        <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
+             
+                                    </div>
+                                 </div>
+                             </div>
+                              <div class="field">
+                                  <label >Stock</label>
+                                  <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
+                                      <option value="" disabled selected>--SELECT--</option>
+                                    </select>
+                               </div>
+                               <div class="field">
+                                   <label><br></label>
+                                   <input type="button" id="medicine_b" name="medicine_b" value="Add" class="ui medium right floated primary button" />
+                               </div>
+                          </div>
+                        <table  class="ui very basic collapsing celled small fluid sortable table"
+                               style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                            <thead>
+                            <tr>
+                                <th class="two wide">
+                                    Medicine
+                                </th>
+        
+                                <th class="two wide" >
+                                    Quantity
+                                </th>
+        
+                                <th class="wide">
+                                    Days
+                                </th>
+                                <th class="wide">
+                                    Times
+                                </th>
+                                <th class="wide">
+                                    Stock
+                                </th>
+                            </tr>
+                            </thead>
+        
+                            <tbody id="sched_b">
+                            </tbody>
+                        </table>
+                        <div class="field">
+                            <label>Tests Suggested</label>
+                            <textarea rows="2" id="tests_b" name="extra_meds" ></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="file">Report</label>
+                            <div class="ui fluid input">
+                                <input type="file" name="file" id="file">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label><br></label>
+                            <input type="button" id="prescribe_b" name="prescribe"  value="Submit Follow-up" class="ui large right floated primary button" />
+                        </div>
+                        <br>
+                        <br>
+                        <hr>
+                        <hr>
+                    </form>
+
+
+
+                   {% for f_pres in follow_presc %}
+                   <div id="follow_up_presc">
+                   <form class="ui form">
+                       <div style="margin-bottom: 10px;margin-top: 15px;">
+                           <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">Follow-up</span>
+                           <span style="font-size: 13px;">on {{f_pres.date}}</span>
+                       </div>
+                       <div class="field">
+                           <label>Doctor</label>
+                           <input placeholder="User Id" value="{{f_pres.Doctor_id}}" id="doctor" name="doctor" type="text" readonly>
+                    </div>
+                     <div class="field">
+                       <label>Detail of Disease</label>
+                       <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
+                   </div>
+                   <div>
+                       <p style="text-align: center; font-size: 15px;margin-top: 10px;margin-bottom: 10px;font-weight: 900;">Revoked Medicine in this Follow-up</p>
+                   </div>
+                   <table  class="ui very basic collapsing celled small fluid sortable table"
+                             style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                          <thead>
+                          <tr>
+                              <th class="two wide">
+                                  Medicine
+                              </th>
+      
+                              <th class="two wide" >
+                                  Quantity
+                              </th>
+      
+                              <th class="wide">
+                                  Days
+                              </th>
+                              <th class="wide">
+                                  Times
+                              </th>
+                              <th class="wide">
+                                  Stock
+                              </th>
+                          </tr>
+                          </thead>
+      
+                          <tbody id="">
+                           {% for med in pre_medicine %}
+                           {% if med.revoked == True and med.revoked_prescription.id == f_pres.id %}
+                           <tr>
+                               <td>
+                                   {{med.medicine_id.brand_name}}
+                               </td>
+                               <td>
+                                   {{med.quantity}}
+                               </td>
+                               <td>
+                                   {{med.days}}
+                               </td>
+                               <td>
+                                   {{med.times}}
+                               </td>
+                               <td>
+                                   {{med.stock}}
+                               </td>
+                           </tr>
+                           {% endif %}
+                           {% endfor %}
+                          </tbody>
+                      </table>
+                      <div>
+                       <p style="text-align: center; font-size: 15px;margin-top: 20px;margin-bottom: 20px;font-weight: 900;">Prescribed Medicine in this Follow-up</p>
+                      </div>
+                   <table  class="ui very basic collapsing celled small fluid sortable table"
+                             style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                          <thead>
+                          <tr>
+                              <th class="two wide">
+                                  Medicine
+                              </th>
+      
+                              <th class="two wide" >
+                                  Quantity
+                              </th>
+      
+                              <th class="wide">
+                                  Days
+                              </th>
+                              <th class="wide">
+                                  Times
+                              </th>
+                              <th class="wide">
+                                  Stock
+                              </th>
+                          </tr>
+                          </thead>
+      
+                          <tbody id="">
+                           {% for med in pre_medicine %}
+                           {% if med.prescription_followup_id.id == f_pres.id %}
+                           <tr>
+                               <td>
+                                   {{med.medicine_id.brand_name}}
+                               </td>
+                               <td>
+                                   {{med.quantity}}
+                               </td>
+                               <td>
+                                   {{med.days}}
+                               </td>
+                               <td>
+                                   {{med.times}}
+                               </td>
+                               <td>
+                                   {{med.stock}}
+                               </td>
+                           </tr>
+                           {% endif %}
+                           {% endfor %}
+                          </tbody>
+                      </table>
+                      <div class="field">
+                       <label>Tests Suggested</label>
+                       <textarea rows="2" id="" name="" readonly>{{f_pres.test}}</textarea>
+                   </div>
+                   {% if f_pres.file_id != 0 %}
+                   <div class="field hidden_print" style="margin-bottom: 20px;">
+                       <label><br></label>
+                       <input type="button" id="{{f_pres.file_id}}" onclick="view_report(this)" value="View Report"class="ui small left floated primary button" />
+                   </div>
+                   {% endif %}
+   
+                   </form>
+                   <div class="hidden_print">
+                        <br>
+                        <hr>
+                        <hr>
+                        <br>
+                   </div>
+                   </div>
+                   {% endfor %}
    
                <form class="ui form" method="POST" style="margin-bottom: 40px;">{% csrf_token %}
-                   <div class="two fields">
-                     <div class="field">
+                <div style="margin-bottom: 10px;margin-top: 15px;">
+                    <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">First visit</span>
+                    <span style="font-size: 13px;">on {{prescription.date}}</span>
+                </div>
+                   <div class="">
+                     {% comment %} <div class="field">
                          <label>Patient</label>
                          <div class="ui fluid large input">
                              <input placeholder="User Id" value="{{prescription.user_id}}" id="user" name="user" type="text" readonly>
                          </div>
-                      </div>
+                      </div> {% endcomment %}
    
                       <div class="field">
                           <label>Doctor</label>
@@ -77,10 +430,10 @@
                           </select>
                        </div>
                    </div>
-                   <div class="field" >
+                   {% comment %} <div class="field" >
                         <label>Date</label>
                         <input name="date" id="date" value="{{prescription.date}}" readonly></input>
-                    </div>
+                    </div> {% endcomment %}
                    {% if prescription.is_dependent == True %}
                    <div id="dependent_hide">
                        <div class="field">
@@ -217,336 +570,14 @@
                        <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
                    </div>
                     {% if prescription.file_id != 0 %}
-                    <div class="" style="margin-botttom: 20px;">
+                    <div class="hidden_print" style="margin-botttom: 20px;">
                         <button id="{{prescription.file_id}}" onclick="view_report(this)" class="ui small left floated primary button" >View Report</button>
                     </div>
                     {% endif %}
                 </form>
                 </div>
                 <br>
-                {% for f_pres in follow_presc %}
-                <hr>
-                <hr>
-                <form  class="ui form">
-                    <div style="margin-bottom: 10px;margin-top: 15px;">
-                        <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">Follow-up</span>
-                        <span style="font-size: 13px;">on {{f_pres.date}}</span>
-                    </div>
-                    <div class="field">
-                        <label>Doctor</label>
-                        <input placeholder="User Id" value="{{f_pres.Doctor_id}}" id="doctor" name="doctor" type="text" readonly>
-                        </select>
-                 </div>
-                  <div class="field">
-                    <label>Detail of Disease</label>
-                    <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
-                </div>
-                <div>
-                    <p style="text-align: center; font-size: 15px;margin-top: 10px;margin-bottom: 10px;font-weight: 900;">Revoked Medicine in this Prescription Follow-up</p>
-                </div>
-                <table  class="ui very basic collapsing celled small fluid sortable table"
-                          style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
-                       <thead>
-                       <tr>
-                           <th class="two wide">
-                               Medicine
-                           </th>
-   
-                           <th class="two wide" >
-                               Quantity
-                           </th>
-   
-                           <th class="wide">
-                               Days
-                           </th>
-                           <th class="wide">
-                               Times
-                           </th>
-                           <th class="wide">
-                               Stock
-                           </th>
-                       </tr>
-                       </thead>
-   
-                       <tbody id="">
-                        {% for med in pre_medicine %}
-                        {% if med.revoked == True and med.revoked_prescription.id == f_pres.id %}
-                        <tr>
-                            <td>
-                                {{med.medicine_id.brand_name}}
-                            </td>
-                            <td>
-                                {{med.quantity}}
-                            </td>
-                            <td>
-                                {{med.days}}
-                            </td>
-                            <td>
-                                {{med.times}}
-                            </td>
-                            <td>
-                                {{med.stock}}
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                       </tbody>
-                   </table>
-                   <div>
-                    <p style="text-align: center; font-size: 15px;margin-top: 20px;margin-bottom: 20px;font-weight: 900;">Medicine Prescribed in this Follow-up</p>
-                   </div>
-                <table  class="ui very basic collapsing celled small fluid sortable table"
-                          style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
-                       <thead>
-                       <tr>
-                           <th class="two wide">
-                               Medicine
-                           </th>
-   
-                           <th class="two wide" >
-                               Quantity
-                           </th>
-   
-                           <th class="wide">
-                               Days
-                           </th>
-                           <th class="wide">
-                               Times
-                           </th>
-                           <th class="wide">
-                               Stock
-                           </th>
-                       </tr>
-                       </thead>
-   
-                       <tbody id="">
-                        {% for med in pre_medicine %}
-                        {% if med.prescription_followup_id.id == f_pres.id %}
-                        <tr>
-                            <td>
-                                {{med.medicine_id.brand_name}}
-                            </td>
-                            <td>
-                                {{med.quantity}}
-                            </td>
-                            <td>
-                                {{med.days}}
-                            </td>
-                            <td>
-                                {{med.times}}
-                            </td>
-                            <td>
-                                {{med.stock}}
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                       </tbody>
-                   </table>
-                   <div class="field">
-                    <label>Tests Suggested</label>
-                    <textarea rows="2" id="" name="" readonly>{{f_pres.test}}</textarea>
-                </div>
-                {% if f_pres.file_id != 0 %}
-                <div class="field" style="margin-bottom: 20px;">
-                    <label><br></label>
-                    <input type="button" id="{{f_pres.file_id}}" onclick="view_report(this)" value="View Report"class="ui small left floated primary button" />
-                </div>
-                {% endif %}
-
-                </form>
-                <br>
-                {% endfor %}
-                <div class="field">
-                    <label><br></label>
-
-                    <input type="button" id="printArea" name=""  value="Print Prescription" class="ui large right floated primary button" />               
-                    <input type="button" id="add_followup" name=""  value="Add Follow-up" class="ui large right floated primary button" />             
-
-                </div>
-               
-                <form id="followup_form" class="ui form" method="POST">{% csrf_token %}
-                    <p id="usr_b"></p>
-                       <div class="field">
-                        <label>Doctor</label>
-                        <select class="ui search fluid dropdown" name="doctor_b" id="doctor_b" required="true">
-                          <option value="" disabled selected>--SELECT--</option>
-                          {% for doctor in doctors %}
-                          <option value="{{doctor.id}}">{{doctor.doctor_name}}</option>
-                          {% endfor %}
-                        </select>
-                        </div>
-    
-                    <div class="field">
-                        <label>Detail of Disease</label>
-                        <textarea name="details" id="details_b" rows="2"></textarea>
-                    </div>
-
-                    <table  class="ui very basic collapsing celled small fluid sortable table"
-                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
-                        <thead>
-                        <tr>
-                            <th class="two wide">
-                                Medicine id
-                            </th>
-                            <th class="two wide">
-                                Medicine
-                            </th>
-    
-                            <th class="two wide" >
-                                Quantity
-                            </th>
-    
-                            <th class="wide">
-                                Days
-                            </th>
-                            <th class="wide">
-                                Times
-                            </th>
-                            <th class="wide">
-                                Stock
-                            </th>
-                            <th class="wide">
-                                revoke
-                            </th>
-                        </tr>
-                        </thead>
-    
-                        <tbody id="non_revoked">
-                            {% for med in pre_medicine %}
-                            {% if med.revoked == False %}
-                            <tr>
-                                <td>
-                                    {{med.id}}
-                                </td>
-                                <td>
-                                    {{med.medicine_id.brand_name}}
-                                </td>
-                                <td>
-                                    {{med.quantity}}
-                                </td>
-                                <td>
-                                    {{med.days}}
-                                </td>
-                                <td>
-                                    {{med.times}}
-                                </td>
-                                <td>
-                                    {{med.stock}}
-                                </td>
-                                <td>
-                                    <label id="" for="{{med.id}}" value="">
-                                        <input type="checkbox" id="{{med.id}}" name="{{med.id}}" value="revoke">
-                                    </label>
-                                </td>
-                            </tr>
-                            {% endif %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
- 
-                    <div class="flex flex-col">
-                        <div class="field">
-                              <label>Medicine</label>
-                                  <div class="flex" style="gap: 10px;">
-                                      <input type="text" class="" id="medicine_id_b" name="medicine_id_b" list="med_list" />
-                                      <input type="button" id="medicine_search_b" name="medicine_search_b" value="Search" class="ui small primary button" />
-                                  </div>
-                              <datalist id="med_list">
-                              </datalist>
-                        </div>
-      
-                        <div class="flex">
-                          <div class="field">
-                              <label>Manufacturer Name</label>
-                              <div>
-                                  <input placeholder="Manufacturer Name" id="medicine_manu_name_b" name="medicine_manu_name_b" type="text" style="width: 400px;">
-                              </div>
-                           </div>
-                           <div class="field">
-                              <label>Pack Size</label>
-                              <div>
-                                  <input placeholder="Pack size" id="medicine_pack_size_b" name="medicine_pack_size_b" type="text" style="width: 300px;">
-                              </div>
-                           </div>
-                        </div>
-      
-                         <div class="flex w-full">
-                          <div class="field">
-                              <label>Quantity</label>
-                              <div class="">
-                                  <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
-         
-                              </div>
-                           </div>
-                             <div class="field">
-                               <label>No of days</label>
-                               <div class="">
-                                   <input placeholder="No of days" id="days_b" name="days_b" type="number">
-         
-                               </div>
-                              </div>
-                              <div class="field">
-                                <label>Times per day</label>
-                                <div class="">
-                                    <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
-         
-                                </div>
-                             </div>
-                         </div>
-                          <div class="field">
-                              <label >Stock</label>
-                              <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
-                                  <option value="" disabled selected>--SELECT--</option>
-                                </select>
-                           </div>
-                           <div class="field">
-                               <label><br></label>
-                               <input type="button" id="medicine_b" name="medicine_b" value="Add" class="ui medium right floated primary button" />
-                           </div>
-                      </div>
-                    <table  class="ui very basic collapsing celled small fluid sortable table"
-                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
-                        <thead>
-                        <tr>
-                            <th class="two wide">
-                                Medicine
-                            </th>
-    
-                            <th class="two wide" >
-                                Quantity
-                            </th>
-    
-                            <th class="wide">
-                                Days
-                            </th>
-                            <th class="wide">
-                                Times
-                            </th>
-                            <th class="wide">
-                                Stock
-                            </th>
-                        </tr>
-                        </thead>
-    
-                        <tbody id="sched_b">
-                        </tbody>
-                    </table>
-                    <div class="field">
-                        <label>Tests Suggested</label>
-                        <textarea rows="2" id="tests_b" name="extra_meds" ></textarea>
-                    </div>
-                    <div class="field">
-                        <label for="file">Report</label>
-                        <div class="ui fluid input">
-                            <input type="file" name="file" id="file">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label><br></label>
-                        <input type="button" id="prescribe_b" name="prescribe"  value="Submit"class="ui large right floated primary button" />
-                    </div>
-                </form>
+                
                </div></div>
                <script src="{% static 'globals/js/jquery.min.js' %}"></script>
                <script type="text/javascript">
@@ -576,12 +607,8 @@
              };
                 })
                     $("#add_followup").click(function(e){
-                        document.getElementById('printArea').style.display="none"
                         form.style.display="block"
-                        var button = document.getElementById('add_followup')
-                        const printButton = document.getElementById('printArea')
-                        button.style.display="none"
-                        printButton.style.display="none"
+                        document.getElementById('util_btns').style.display="none"
                     })
                 $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
@@ -685,9 +712,9 @@
        <script type="text/javascript">
                        $('#prescribe_b').click(function(e){
 
-                                                        document.getElementById('printArea').style.display="block"
+                                                       // document.getElementById('printArea').style.display="block"
 
-                                                       var user = document.getElementById('user').value;
+                                                       // var user = document.getElementById('user').value;
                                                        var details = document.getElementById('details_b').value;
                                                        var tbl = document.getElementById('sched_b');
                                                        var medicine=[]
@@ -729,9 +756,10 @@
                                                        date="{{prescription.date}}"
                                                        console.log(date)
                                                        var formData = new FormData();
-                                                       if(user=="" || details=="")
+                                                       if(details=="")
                                                        {
                                                        $('#usr_b').html("Please enter all the details!");
+                                                       alert("Please enter all the details!");
                                                        return false;
                                                        }
                                                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
@@ -803,6 +831,105 @@
             border: 1px solid red;
         }
     </style>
+
+    <script>
+        function printHandleChange(e){
+            if(e.id=="print_lat_follow_up"){
+                if(e.checked){
+                    document.getElementById('print_whole_prescription').checked=false;
+                }
+            }
+            else{
+                if(e.checked){
+                    document.getElementById('print_lat_follow_up').checked=false;
+                }
+            }
+        }
+        document.getElementById('print_button').addEventListener('click',() => {
+            handleprint()
+        })
+        function handleprint() {
+            let follow_up = document.getElementById('print_lat_follow_up').checked;
+            let whole_prescription = document.getElementById('print_whole_prescription').checked;
+            if(!follow_up && !whole_prescription){
+                alert('Please select one option to print!')
+                return
+            }
+            let reqHtml = '';
+            if(follow_up){
+                var captures = document.querySelectorAll('#follow_up_presc');
+                reqHtml = `
+                    <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
+                    <div>
+                        <p style="font-size: 1.3rem;font-weight: 700;">{{prescription.user_id}}'s Latest Follow-up</p>
+                        <p>Of prescription ID #{{prescription.id}} on {{prescription.date}}</p>
+                    </div>
+                    ${captures[0].innerHTML}
+                `;
+            }
+            else{
+                reqHtml = document.getElementById('whole_prescription').innerHTML;
+            }
+            let content = `
+                <html lang="en">
+                <head>
+                <title>
+                    PHC IIITDMJ
+                </title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                        min-height: 100dvh;
+                    }
+                    .prescription-container {
+                        margin: 20px;
+                        padding: 20px;
+                        border: 1px solid #ccc;
+                        border-radius: 10px;
+                        max-width: 600px;
+                        margin: auto;
+                        page-break-inside: avoid;
+                    }
+                    .hidden_print {
+                        display: none;
+                    }
+                    @media print {
+                        body, .prescription-container {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .prescription-container {
+                            border: 1px solid #ccc;
+                            border-radius: 10px;
+                            margin: 20px auto;
+                            padding: 20px;
+                            box-sizing: border-box;
+                        }
+                    }
+                </style>
+                </head>
+                <body>
+                <div class="prescription-container">
+                    <div style="text-align: center;margin-bottom: 30px;">
+                        <h1>Primary Health Care Center</h1>
+                        <h3>PDPM IIITDM Jabalpur</h3>
+                    </div>
+                    ${reqHtml}
+                </div>
+                </body>
+                </html>
+            `
+            var printWindow = window.open('', '', 'height=900,width=1000');
+            printWindow.document.write(content);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+    </script>
 
 {% endblock %}
 
