@@ -286,7 +286,9 @@
                     </div>
                      <div class="field">
                        <label>Detail of Disease</label>
-                       <textarea name="details" id="details" rows="2" readonly>{{f_pres.details}}</textarea>
+                        <div class="spl-textarea">
+                            {{f_pres.details}}
+                        </div>
                    </div>
                    <div>
                        <p style="text-align: center; font-size: 15px;margin-top: 10px;margin-bottom: 10px;font-weight: 900;">Revoked Medicine in this Follow-up</p>
@@ -392,7 +394,13 @@
                       </table>
                       <div class="field">
                        <label>Tests Suggested</label>
-                       <textarea rows="2" id="" name="" readonly>{{f_pres.test}}</textarea>
+                       <div class="spl-textarea">
+                            {% if f_pres.test == "" %}
+                                No Test suggested
+                            {% else %}
+                                {{f_pres.tests}}
+                            {% endif %}
+                       </div>
                    </div>
                    {% if f_pres.file_id != 0 %}
                    <div class="field hidden_print" style="margin-bottom: 20px;">
@@ -449,7 +457,7 @@
    
                    <div class="field">
                        <label>Detail of Disease</label>
-                       <textarea name="details" id="details" rows="2" readonly>{{prescription.details}}</textarea>
+                       <div class="spl-textarea">{{prescription.details}}</div>
                    </div>
 
 
@@ -567,7 +575,13 @@
                    </table>
                    <div class="field">
                        <label>Tests Suggested</label>
-                       <textarea rows="2" id="" name="" readonly>{{prescription.test}}</textarea>
+                       <div class="spl-textarea">
+                            {% if prescription.test == "" %}
+                                 No Test suggested
+                            {% else %}
+                                 {{prescription.test}}
+                            {% endif %}
+                       </div>
                    </div>
                     {% if prescription.file_id != 0 %}
                     <div class="hidden_print" style="margin-botttom: 20px;">
@@ -798,6 +812,9 @@
                 {% endblock %}
             </div>
         </div>
+        <div id="logo-div" style="display: none;">
+            <img src="{% static 'globals/img/institute_logo.jpg' %}" alt="IIITDMJ Logo" style="width: 80px; height: 80px; margin: auto; display: block;" />
+        </div>
         {% comment %}The central-rail segment ends here!{% endcomment %}
 
         {% comment %}The right-rail segment starts here!{% endcomment %}
@@ -829,6 +846,12 @@
         }
         .bbx {
             border: 1px solid red;
+        }
+        .spl-textarea {
+            border: 1px solid rgba(34, 36, 38, .15);
+            padding: .67861429em 1em;
+            border-radius: .28571429rem;
+            width: 100%;
         }
     </style>
 
@@ -870,6 +893,7 @@
             else{
                 reqHtml = document.getElementById('whole_prescription').innerHTML;
             }
+            let logoHtml = document.getElementById('logo-div').innerHTML;
             let content = `
                 <html lang="en">
                 <head>
@@ -896,6 +920,12 @@
                     .hidden_print {
                         display: none;
                     }
+                    .spl-textarea {
+                        border: 1px solid rgba(34, 36, 38, .15);
+                        padding: .67861429em 1em;
+                        border-radius: .28571429rem;
+                        width: 100%;
+                    }
                     @media print {
                         body, .prescription-container {
                             margin: 0;
@@ -913,9 +943,14 @@
                 </head>
                 <body>
                 <div class="prescription-container">
-                    <div style="text-align: center;margin-bottom: 30px;">
-                        <h1>Primary Health Care Center</h1>
-                        <h3>PDPM IIITDM Jabalpur</h3>
+                    <div style="display: flex;width: 100%;gap: 20px;margin-bottom: 30px;">
+                        <div>
+                            ${logoHtml}
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <p style="font-size: 2rem;font-wieght: 700;margin-bottom: 7px;">Primary Health Care Center</p>
+                            <p>PDPM IIITDM Jabalpur</p>
+                        </div>
                     </div>
                     ${reqHtml}
                 </div>
@@ -928,6 +963,7 @@
             printWindow.focus();
             printWindow.print();
             printWindow.close();
+            window.location.reload();
         }
     </script>
 
