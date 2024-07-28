@@ -334,11 +334,12 @@ def compounder_view_handler(request):
             id=0
             if(len(medicine_name_and_id.split(",")) > 1) :
                 id=medicine_name_and_id.split(",")[1]
-            print(id)
             if id == 0:
+                print("id 0")
                 status=1
                 similar_name_qs = All_Medicine.objects.filter(brand_name__istartswith=medicine_name)[:10]
             else :
+                print("id not 0")
                 status=2
                 similar_name_qs = All_Medicine.objects.filter(id=id)
             similar_name = list(similar_name_qs.values('id', 'medicine_name','constituents','manufacturer_name','pack_size_label','brand_name','threshold'))
@@ -366,6 +367,7 @@ def compounder_view_handler(request):
             val_to_return = []
             print(f"Error: {e}")
         finally:
+            print({"val": val_to_return, "sim": similar_name, "status": status})
             return JsonResponse({"val": val_to_return, "sim": similar_name, "status": status})
     elif 'medicine_name_b' in request.POST:
         user_id = request.POST.get('user')
@@ -376,10 +378,13 @@ def compounder_view_handler(request):
         stock = request.POST.get('stock')
         medicine_brand_name = medicine_id.split(",")[0]
         id= medicine_id.split(",")[1]
-        print(medicine_brand_name)
         med_name = All_Medicine.objects.get(id=id).brand_name
+        if(stock == "" or stock == "N/A at moment") :
+            return JsonResponse({"status":1,"med_name":med_name,"id":id})
+        print(medicine_brand_name)
         stk=stock.split(",")
-        qty = int(stk[3])
+        qty = int(stk[2])
+        print("qty",qty)
         status=1
         if quantity>qty : status=0
         return JsonResponse({"status":status,"med_name":med_name,"id":id})
@@ -523,36 +528,46 @@ def compounder_view_handler(request):
             quant = int(med['quantity'])
             days = med['Days'] 
             times = med['Times']
-            stock = med['stock'] 
-            stk = stock.split(",")
+            stock = med['stock']
+            print(stock)
             med_id = All_Medicine.objects.get(id=id)
-            p_stock = Present_Stock.objects.get(id=int(stk[4]))
-            All_Prescribed_medicine.objects.create(
-                prescription_id = pres,
-                medicine_id = med_id,
-                stock = p_stock,
-                quantity = quant,
-                days = days,
-                times=times
-            )
-            p_stock.quantity -= quant
-            p_stock.save()
-            stock_of_medicine = Present_Stock.objects.filter(Q(medicine_id = med_id) & Q( Expiry_date__gt = date.today()))
-            qty=0
-            for stk in stock_of_medicine :
-                qty+=stk.quantity
+            if(stock == "," or stock == 'N/A at moment,') :
+                All_Prescribed_medicine.objects.create(
+                    prescription_id = pres,
+                    medicine_id = med_id,
+                    quantity = quant,
+                    days = days,
+                    times=times
+                )
+            else :
+                stk = stock.split(",")
+                p_stock = Present_Stock.objects.get(id=int(stk[2]))
+                All_Prescribed_medicine.objects.create(
+                    prescription_id = pres,
+                    medicine_id = med_id,
+                    stock = p_stock,
+                    quantity = quant,
+                    days = days,
+                    times=times
+                )
+                p_stock.quantity -= quant
+                p_stock.save()
+                stock_of_medicine = Present_Stock.objects.filter(Q(medicine_id = med_id) & Q( Expiry_date__gt = date.today()))
+                qty=0
+                for stk in stock_of_medicine :
+                    qty+=stk.quantity
 
-            if qty<med_id.threshold :
-                if Required_medicine.objects.filter(medicine_id = med_id).exists():
-                    req= Required_medicine.objects.get(medicine_id = med_id)
-                    req.quantity = qty
-                    req.save()
-                else :
-                    Required_medicine.objects.create(
-                        medicine_id = med_id,
-                        quantiy = qty,
-                        threshold = med_id.threshold
-                    )
+                if qty<med_id.threshold :
+                    if Required_medicine.objects.filter(medicine_id = med_id).exists():
+                        req= Required_medicine.objects.get(medicine_id = med_id)
+                        req.quantity = qty
+                        req.save()
+                    else :
+                        Required_medicine.objects.create(
+                            medicine_id = med_id,
+                            quantiy = qty,
+                            threshold = med_id.threshold
+                        )
         # pre_medicine = request.POST.get_json('pre_medicine')
         # print(pre_medicine)
         # details = request.POST.get('details')
@@ -661,38 +676,48 @@ def compounder_view_handler(request):
             quant = int(med['quantity'])
             days = med['Days'] 
             times = med['Times']
-            stock = med['stock'] 
-            stk = stock.split(",")
+            stock = med['stock']
             med_id = All_Medicine.objects.get(id = id)
-            print(stk[4])
-            p_stock = Present_Stock.objects.get(id=int(stk[4]))
-            All_Prescribed_medicine.objects.create(
-                prescription_id = presc,
-                medicine_id = med_id,
-                stock = p_stock,
-                quantity = quant,
-                days = days,
-                times=times,
-                prescription_followup_id = followup
-            )
-            p_stock.quantity -= quant
-            p_stock.save()
-            stock_of_medicine = Present_Stock.objects.filter(Q(medicine_id = med_id) & Q(Expiry_date__gt = date.today()))
-            qty=0
-            for stk in stock_of_medicine :
-                qty+=stk.quantity
+            if(stock == ',' or stock == "N/A at moment,"):
+                All_Prescribed_medicine.objects.create(
+                    prescription_id = presc,
+                    medicine_id = med_id,
+                    quantity = quant,
+                    days = days,
+                    times=times,
+                    prescription_followup_id = followup
+                )
+            else :    
+                stk = stock.split(",")
+                print(stk[4])
+                p_stock = Present_Stock.objects.get(id=int(stk[4]))
+                All_Prescribed_medicine.objects.create(
+                    prescription_id = presc,
+                    medicine_id = med_id,
+                    stock = p_stock,
+                    quantity = quant,
+                    days = days,
+                    times=times,
+                    prescription_followup_id = followup
+                )
+                p_stock.quantity -= quant
+                p_stock.save()
+                stock_of_medicine = Present_Stock.objects.filter(Q(medicine_id = med_id) & Q(Expiry_date__gt = date.today()))
+                qty=0
+                for stk in stock_of_medicine :
+                    qty+=stk.quantity
 
-            if qty<med_id.threshold :
-                if Required_medicine.objects.filter(medicine_id = med_id).exists():
-                    req= Required_medicine.objects.get(medicine_id = med_id)
-                    req.quantity = qty
-                    req.save()
-                else :
-                    Required_medicine.objects.create(
-                        medicine_id = med_id,
-                        quantiy = qty,
-                        threshold = med_id.threshold
-                    )
+                if qty<med_id.threshold :
+                    if Required_medicine.objects.filter(medicine_id = med_id).exists():
+                        req= Required_medicine.objects.get(medicine_id = med_id)
+                        req.quantity = qty
+                        req.save()
+                    else :
+                        Required_medicine.objects.create(
+                            medicine_id = med_id,
+                            quantiy = qty,
+                            threshold = med_id.threshold
+                        )
         revoked = request.POST.get('revoked')
         r_medicine = eval('(' + revoked+')')
         for med in r_medicine:
@@ -945,10 +970,12 @@ def compounder_view_handler(request):
             
         report = []
         for pre in prescriptions:
+            doc = None
+            if pre.doctor_id != None : doc=pre.doctor_id.doctor_name
             dic = {
                 'id': pre.pk,
                 'user_id': pre.user_id,
-                'doctor_id': pre.doctor_id,
+                'doctor_id': doc,
                 'date': pre.date,
                 'details': pre.details,
                 'test': pre.test,

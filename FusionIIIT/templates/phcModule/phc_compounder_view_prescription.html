@@ -216,9 +216,19 @@
                               <div class="field">
                                   <label >Stock</label>
                                   <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
-                                      <option value="" disabled selected>--SELECT--</option>
+                                      <option value="" selected>--SELECT--</option>
                                     </select>
                                </div>
+                               <div class="flex w-full">
+                                <div class="field">
+                                    <label>Expiry Date</label>
+                                    <input id="stock_expiry" placeholder="stock expiery" readonly >
+                                </div>
+                                <div class="field">
+                                    <label>Stock Quantity</label>
+                                    <input id="stock_quantity" placeholder="stock quantity" readonly >
+                                </div>
+                         </div>
                                <div class="field">
                                    <label><br></label>
                                    <input type="button" id="medicine_b" name="medicine_b" value="Add" class="ui medium right floated primary button" />
@@ -244,6 +254,9 @@
                                 </th>
                                 <th class="wide">
                                     Stock
+                                </th>
+                                <th class="wide" hidden>
+                                    extra
                                 </th>
                             </tr>
                             </thead>
@@ -334,7 +347,11 @@
                                    {{med.times}}
                                </td>
                                <td>
+                                {% if med.stock == None %}
+                                NOT TAKEN FROM STOCK
+                                {% else %}
                                    {{med.stock}}
+                                {% endif %}
                                </td>
                            </tr>
                            {% endif %}
@@ -385,7 +402,11 @@
                                    {{med.times}}
                                </td>
                                <td>
+                                {% if med.stock == None %}
+                                NOT TAKEN FROM STOCK
+                                {% else %}
                                    {{med.stock}}
+                                {% endif %}
                                </td>
                            </tr>
                            {% endif %}
@@ -459,72 +480,6 @@
                        <label>Detail of Disease</label>
                        <div class="spl-textarea">{{prescription.details}}</div>
                    </div>
-
-
-                   <!-- <div class="two fields">
-                     <div class="field">
-                         <label>Medicine</label>
-   
-                           <select class="ui search fluid dropdown" id="medicine_id_b" name="medicine_id_b" required="true">
-                           <option value="" disabled selected>--SELECT--</option>
-                           {% for medicine in medicine %}  
-                           <option value="{{medicine.id}}">{{medicine.medicine_name}}</option>
-                           {% endfor %}
-                         </select>
-                     </div>
-   
-                      <div class="field">handleprint() {
-    var printReport = document.getElementById("printArea").innerHTML;
-    var iframe = document.createElement("iframe");
-    iframe.style.position = "absolute";
-    iframe.style.top = "-99999px"; // Move the iframe off-screen
-    document.body.appendChild(iframe);
-    var doc = iframe.contentWindow.document;
-    doc.write(
-      "<html><head><title>Print</title><style>@media print { .avoid-page-break { page-break-inside: avoid; } }</style></head><body>" +
-        printReport +
-        "</body></html>"
-    );
-    doc.close();
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    iframe.contentWindow.onafterprint = function () {
-      document.body.removeChild(iframe);
-      close();
-    };
-  }
-                        <label>Quantity</label>
-                        <div class="ui fluid large input">
-                            <input placeholder="Quantity" id="quantity_b" name="quantity_b" type="number">
-   
-                        </div>
-                     </div>
-                       <div class="field">
-                         <label>No of days</label>
-                         <div class="ui fluid large input">
-                             <input placeholder="No of days" id="days_b" name="days_b" type="number">
-   
-                         </div>
-                        </div>
-                        <div class="field">
-                          <label>Times per day</label>
-                          <div class="ui fluid large input">
-                              <input placeholder="No of times per day" id="times_b" name="times_b" type="number">
-   
-                          </div>
-                       </div>
-                       <div class="field">
-                           <label>Stock</label>
-                           <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
-                               <option value="" disabled selected>--SELECT--</option>
-                             </select>
-                        </div>
-                        <div class="field">
-                            <label><br></label>
-                            <input type="button" id="medicine_b" name="medicine_b" value="Add"class="ui small left floated primary button" />
-   
-                        </div>
-                   </div> -->
                    <table  class="ui very basic collapsing celled small fluid sortable table"
                           style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
                        <thead>
@@ -566,7 +521,11 @@
                                 {{med.times}}
                             </td>
                             <td>
-                                {{med.stock}}
+                                {% if med.stock == None %}
+                                NOT TAKEN FROM STOCK
+                                {% else %}
+                                   {{med.stock}}
+                                {% endif %}
                             </td>
                         </tr>
                         {% endif %}
@@ -620,10 +579,16 @@
                close();
              };
                 })
-                    $("#add_followup").click(function(e){
-                        form.style.display="block"
-                        document.getElementById('util_btns').style.display="none"
-                    })
+                $("#stock_b").change(function(){
+                    console.log($("#stock_b").val())
+                    var stock_val = $("#stock_b").val().split(',')
+                    document.getElementById("stock_expiry").value = stock_val[0]
+                    document.getElementById("stock_quantity").value = stock_val[2]
+                })
+                $("#add_followup").click(function(e){
+                    form.style.display="block"
+                    document.getElementById('util_btns').style.display="none"
+                })
                 $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
@@ -638,6 +603,7 @@
                         success: function(data){
                             var select_stock = document.getElementById("stock_b");
                             select_stock.options.length=0
+                            select_stock.options[select_stock.options.length] =new Option("","",true , true );
                             var med_list = document.getElementById("med_list");
                             med_list.innerHTML="";
                             $.each(data.sim,function(key,value){
@@ -651,8 +617,9 @@
                                 let expiry=value.expiry;
                                 let supplier = value.supplier;
                                 let qty = value.quantity
-                                select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
+                                select_stock.options[select_stock.options.length] = new Option(med_name , expiry+","+supplier+","+qty+","+id , false , false );
                             });
+                            console.log($("#stock_b").val())
                             if (data.status == 2) {
                                 var manufacturer_name_b =
                                 document.getElementById("medicine_manu_name_b");
@@ -706,8 +673,14 @@
                                                                  var response=JSON.stringify(data);
                                                                  if(data.status==1){
                                                                        alert("added medicine");
-                                                                       $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
-                                                                       document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
+                                                                       if(  document.getElementById("stock_b").value == ""){
+                                                                        $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
+                                                                            document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value+ "</td><td hidden>"+"</td></tr>");
+                                                                    }
+                                                                    else{
+                                                                        $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
+                                                                        document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value.split(",")[0] +","+ document.getElementById("stock_b").value.split(",")[2]  + "</td><td hidden>"+ document.getElementById("stock_b").value.split(",")[3] + "</td></tr>");
+                                                                    }
                                                                   }
                                                                 else if(data.status==-1){
                                                                     alert("failed to add medcine")
@@ -739,7 +712,7 @@
                                                            obj.quantity=row.cells[1].innerText;
                                                            obj.Days=row.cells[2].innerText;
                                                            obj.Times=row.cells[3].innerText;
-                                                           obj.stock=row.cells[4].innerText;
+                                                           obj.stock=row.cells[4].innerText+","+row.cells[5].innerText;
                                                            medicine[i]=obj;
                                                            console.log(obj)
                                                        }

@@ -17,9 +17,10 @@ from notification.views import  healthcare_center_notif
 from .models import ( Constants,All_Medicine,All_Prescribed_medicine,All_Prescription,Prescription_followup,
                     Present_Stock,Doctor,Pathologist,
                     Doctors_Schedule,Pathologist_Schedule,Stock_entry,
-                    medical_relief,MedicalProfile,Required_medicine,files)
+                    medical_relief,MedicalProfile,Required_medicine,files,Required_tabel_last_updated)
 from .utils import datetime_handler, compounder_view_handler, student_view_handler
 from applications.filetracking.sdk.methods import *
+from django.db.models import Q
 
 
 
@@ -90,7 +91,54 @@ def compounder_view(request):
             # expired=Expiry.objects.select_related('medicine_id').filter(expiry_date__lt=datetime.now(),returned=False).order_by('expiry_date')
             # live_meds=Expiry.objects.select_related('medicine_id').filter(returned=False).order_by('quantity')
             page_size=2
-            
+            fir=Required_tabel_last_updated.objects.first()
+            if fir == None:
+                exp = Stock_entry.objects.filter(Expiry_date__lt = date.today())
+                for e in exp:
+                    med=e.medicine_id
+                    p_s = Present_Stock.objects.filter(Q(medicine_id = med) & Q(Expiry_date__gte = date.today()))
+                    qty=0
+                    for ps in p_s:
+                        qty+=ps.quantity
+                    if Required_medicine.objects.filter(medicine_id=med).exists() :
+                        req=Required_medicine.objects.get(medicine_id=med)
+                        if qty>=med.threshold  : req.delete()
+                        else :
+                            req.quantity = qty
+                            req.save()
+                    else :
+                        if qty<med.threshold:
+                            Required_medicine.objects.create(
+                                medicine_id=med,
+                                quantity = qty,
+                                threshold = med.threshold
+                            )
+                Required_tabel_last_updated.objects.create(
+                    date= date.today()
+                )
+            else :
+                last_updated = fir.date
+                exp = Stock_entry.objects.filter(Q(Expiry_date__gte = last_updated) & Q(Expiry_date__lt = date.today()))
+                for e in exp:
+                    med=e.medicine_id
+                    p_s = Present_Stock.objects.filter(Q(medicine_id = med) & Q(Expiry_date__gte = date.today()))
+                    qty=0
+                    for ps in p_s:
+                        qty+=ps.quantity
+                    if Required_medicine.objects.filter(medicine_id=med).exists() :
+                        req=Required_medicine.objects.get(medicine_id=med)
+                        if(qty>med.threshold) : req.delete()
+                        else :
+                            req.quantity = qty
+                            req.save()
+                    else :
+                        if qty<med.threshold:
+                            Required_medicine.objects.create(
+                                medicine_id=med,
+                                quantity = qty,
+                                threshold = med.threshold
+                            )
+
             # stocks = Required_medicine.objects.all()
             current_required_page = 1
             page_size_required = page_size

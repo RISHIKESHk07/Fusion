@@ -112,8 +112,18 @@
                     <div class="field">
                         <label >Stock</label>
                         <select class="ui search fluid dropdown" name="stock_b" id="stock_b" required="true">
-                            <option value="" disabled selected>--SELECT--</option>
+                            <option value="" selected>--SELECT--</option>
                           </select>
+                     </div>
+                     <div class="flex">
+                            <div class="field">
+                                <label>Expiry Date</label>
+                                <input id="stock_expiry" placeholder="stock expiery"  style="width: 400px;" readonly >
+                            </div>
+                            <div class="field">
+                                <label>Stock Quantity</label>
+                                <input id="stock_quantity" placeholder="stock quantity"  style="width: 300px;" readonly >
+                            </div>
                      </div>
                      <div class="field">
                          <label><br></label>
@@ -141,6 +151,9 @@
                         </th>
                         <th class="wide">
                             Stock
+                        </th>
+                        <th class="wide" hidden>
+                            extra
                         </th>
                     </tr>
                     </thead>
@@ -182,6 +195,13 @@
                     }
                 }
 
+                $("#stock_b").change(function(){
+                    console.log($("#stock_b").val())
+                    var stock_val = $("#stock_b").val().split(',')
+                    document.getElementById("stock_expiry").value = stock_val[0]
+                    document.getElementById("stock_quantity").value = stock_val[2]
+                    })
+
                   $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
@@ -196,6 +216,7 @@
                         success: function(data){
                             var select_stock = document.getElementById("stock_b");
                             select_stock.options.length=0
+                            select_stock.options[select_stock.options.length] =new Option("","",true , true );
                             var med_list = document.getElementById("med_list");
                             med_list.innerHTML="";
                             $.each(data.sim,function(key,value){
@@ -203,14 +224,23 @@
                                 new_option.value = value.brand_name +","+value.id
                                 med_list.appendChild(new_option)
                             })
-                            $.each(data.val,function(key,value){
+                            if(data.val.length == 0){
+                                console.log(document.getElementById('stock_b').value)
+                                document.getElementById('stock_b').value = "N/A at moment"
+                                select_stock.options[select_stock.options.length] = new Option("N/A at moment" ,"N/A at moment", true , true );
+                            }
+                            else{
+                                $.each(data.val,function(key,value){
                                 let id=value.id;
                                 let med_name=value.brand_name;
                                 let expiry=value.expiry;
                                 let supplier = value.supplier;
                                 let qty = value.quantity
-                                select_stock.options[select_stock.options.length] = new Option(med_name+","+expiry+","+supplier+","+qty+","+id);
+                                select_stock.options[select_stock.options.length] = new Option(med_name +","+id , expiry+","+supplier+","+qty+","+id , false , false );
                             });
+                            }
+                            
+                            console.log($("#stock_b").val())
                             if (data.status == 2) {
                                 var manufacturer_name_b =
                                 document.getElementById("medicine_manu_name_b");
@@ -257,8 +287,14 @@
                                                               if(data.status==1){
                                                                     document.getElementById('medicine_schedule_table').style.display = 'block';
                                                                     alert("added medicine");
-                                                                    $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
-                                                                    document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value + "</td></tr>");
+                                                                    if(  document.getElementById("stock_b").value == "" || document.getElementById("stock_b").value=="N/A at moment"){
+                                                                        $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
+                                                                            document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value+ "</td><td hidden>"+"</td></tr>");
+                                                                    }
+                                                                    else{
+                                                                        $('#sched_b').append("<tr><td>" + data.med_name+","+data.id + "</td><td>" +
+                                                                        document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value.split(",")[0] +","+ document.getElementById("stock_b").value.split(",")[2]  + "</td><td hidden>"+ document.getElementById("stock_b").value.split(",")[3] + "</td></tr>");
+                                                                    }
                                                                }
                                                                else if(data.status==-1){
                                                                 alert("failed to add medcine")
@@ -289,7 +325,7 @@
                                                         obj.quantity=row.cells[1].innerText;
                                                         obj.Days=row.cells[2].innerText;
                                                         obj.Times=row.cells[3].innerText;
-                                                        obj.stock=row.cells[4].innerText;
+                                                        obj.stock=row.cells[4].innerText+","+row.cells[5].innerText;
                                                         medicine[i]=obj;
                                                         console.log(obj)
                                                     }
@@ -424,25 +460,26 @@
 
                 </tr>
                 {% endfor %}
-                <div class="pagination">
-                        {% if presc_hist.page.has_previous %}
-                        <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}">Previous</button>
-                        {% else %}
-                        <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}" style="display:None">Previous</button>
-                        {% endif %}
-            
-                    <span>Page {{ presc_hist.page.number }} of {{ presc_hist.count}}</span>
-            
-                        {% if presc_hist.page.has_next %}
-                        <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
-                        {% else %}
-                        <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
-                        {% endif %}
-                </div>
-               
 
                 </tbody>
             </table>
+            <div class="pagination">
+                {% if presc_hist.page.has_previous %}
+                <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}">Previous</button>
+                {% else %}
+                <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}" style="display:None">Previous</button>
+                {% endif %}
+                <div class="field">
+                    Page <input type="number" value="{{ presc_hist.page.number }}" id="log_page_number"> of <input type="number" value="{{ presc_hist.count}}" id="log_total_pages" readonly>
+                </div>
+    
+                {% if presc_hist.page.has_next %}
+                <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
+                {% else %}
+                <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
+                {% endif %}
+        </div>
+       
         
         <style>
             .view-followup-btn {
@@ -540,8 +577,8 @@
                              } else {
                                  $('#next-page').hide();
                              }
-                            
-                             $('.pagination span').text('Page ' + data.presc_context.page.number + ' of ' + data.presc_context.count);
+                             document.getElementById('log_page_number').value=data.presc_context.page.number
+                             document.getElementById('log_total_pages').value=data.presc_context.count
                         
                     }
                 })
@@ -584,7 +621,8 @@
                                  $('#next-page').hide();
                              }
                             
-                             $('.pagination span').text('Page ' + data.page + ' of ' + data.total_pages);
+                             document.getElementById('log_page_number').value=data.page
+                             document.getElementById('log_total_pages').value=data.total_pages
                          }
                      });
                  }
@@ -599,6 +637,14 @@
                      loadPage(pageNumber);
                      
                  });
+                 $('#log_page_number').change(function(){
+                    if( document.getElementById('log_page_number').value<=0 || document.getElementById('log_page_number').value > document.getElementById('log_total_pages').value){
+                        alert("enter valid page number")
+                    }
+                    else{
+                        loadPage(document.getElementById('log_page_number').value);
+                    }
+                 })
          </script>
 
     </div>

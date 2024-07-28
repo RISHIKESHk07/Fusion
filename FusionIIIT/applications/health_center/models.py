@@ -139,7 +139,7 @@ class Prescription_followup(models.Model):
 class All_Prescribed_medicine(models.Model):
     prescription_id = models.ForeignKey(All_Prescription,on_delete=models.CASCADE)
     medicine_id = models.ForeignKey(All_Medicine,on_delete=models.CASCADE)
-    stock = models.ForeignKey(Present_Stock,on_delete=models.CASCADE)
+    stock = models.ForeignKey(Present_Stock,on_delete=models.CASCADE,null=True)
     prescription_followup_id = models.ForeignKey(Prescription_followup,on_delete=models.CASCADE,null=True)
     quantity = models.IntegerField(default=0)
     days = models.IntegerField(default=0)
@@ -150,7 +150,8 @@ class All_Prescribed_medicine(models.Model):
 
     def __str__(self):
         return self.medicine_id.medicine_name
-
+class Required_tabel_last_updated(models.Model):
+    date=models.DateField()
 class files(models.Model):
     file_data = models.BinaryField()
 
