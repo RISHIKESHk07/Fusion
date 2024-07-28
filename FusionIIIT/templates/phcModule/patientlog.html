@@ -397,8 +397,9 @@
                     </div>
                  </div>
             </form>
-            <table  border=1 class="ui very basic collapsing celled large sortable table"
-                  style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;" >
+            <div class="table_wrapper">
+                <table  border=1 class="ui very basic collapsing celled large sortable table"
+                style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;" >
                 <thead>
                 <tr>
                     <td style="font-weight:bold;color:black;" >
@@ -436,7 +437,7 @@
                         <h4 class="ui image header">
                             <img src="{% static 'globals/img/zlatan.jpg' %}" class="ui mini circular image">
                         </h4>
-                              {{pre.doctor_id}}
+                            {{pre.doctor_id}}
 
 
                     </td>
@@ -463,22 +464,14 @@
 
                 </tbody>
             </table>
-            <div class="pagination">
-                {% if presc_hist.page.has_previous %}
-                <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}">Previous</button>
-                {% else %}
-                <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}" style="display:None">Previous</button>
-                {% endif %}
-                <div class="field">
-                    Page <input type="number" value="{{ presc_hist.page.number }}" id="log_page_number"> of <input type="number" value="{{ presc_hist.count}}" id="log_total_pages" readonly>
+            </div>
+            <div class="pagination" style="display: flex; justify-content: center;align-items: center;gap: 15px;margin-top: 15px;">
+                <button id="previous-page" data-page="{{ presc_hist.page.previous_page_number }}" class="ui small muted button">Previous</button>
+                <div>
+                    Page <input type="number" value="{{ presc_hist.page.number }}" id="log_page_number" style="width: 40px;"> of <span id="log_total_pages">{{ presc_hist.count}}</span>
                 </div>
-    
-                {% if presc_hist.page.has_next %}
-                <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
-                {% else %}
-                <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}">Next</button>
-                {% endif %}
-        </div>
+                <button id="next-page" data-page="{{ presc_hist.page.next_page_number }}" class="ui small muted button">Next</button>
+            </div>
        
         
         <style>
@@ -540,6 +533,12 @@
         </script>
 
          <script>
+            let items_per_page = 2;
+            let captures = document.querySelectorAll('.table_wrapper');
+            captures.forEach((capture) => {
+                capture.style.height = `${50 + (items_per_page * 50)}px`;
+            });
+
             $('#search_patientlog').on('submit',function(e){
                 e.preventDefault();
                 alert('changed search')
@@ -578,7 +577,7 @@
                                  $('#next-page').hide();
                              }
                              document.getElementById('log_page_number').value=data.presc_context.page.number
-                             document.getElementById('log_total_pages').value=data.presc_context.count
+                             document.getElementById('log_total_pages').innerHTML=data.presc_context.count
                         
                     }
                 })
@@ -611,18 +610,14 @@
                              
                              if (data.has_previous) {
                                  $('#previous-page').data('page', data.previous_page_number).show();
-                             } else {
-                                 $('#previous-page').hide();
                              }
          
                              if (data.has_next) {
                                  $('#next-page').data('page', data.next_page_number).show();
-                             } else {
-                                 $('#next-page').hide();
                              }
                             
                              document.getElementById('log_page_number').value=data.page
-                             document.getElementById('log_total_pages').value=data.total_pages
+                             document.getElementById('log_total_pages').innerHTML=data.total_pages
                          }
                      });
                  }
@@ -638,7 +633,7 @@
                      
                  });
                  $('#log_page_number').change(function(){
-                    if( document.getElementById('log_page_number').value<=0 || document.getElementById('log_page_number').value > document.getElementById('log_total_pages').value){
+                    if( document.getElementById('log_page_number').value<=0 || document.getElementById('log_page_number').value > document.getElementById('log_total_pages').innerHTML){
                         alert("enter valid page number")
                     }
                     else{

@@ -598,7 +598,7 @@
       });
     </script>
 
-    <table
+      <table
       class="ui very basic collapsing celled large fluid sortable table"
       id="live_stock"
       style="
@@ -640,21 +640,14 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <div id="pagination-stock-view" class="pagination-stock-view">
-              {% if live_meds.page_stock_view.has_previous %}
-              <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="pagination-link">Previous</button>
-              {% else %}
-              <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
-              {% endif %}
-              <div class="field">
-                Page <input type="number" value="{{ live_meds.page_stock_view.number }}" id="live_stock_page_number"> of <input type="number" value="{{ live_meds.count_stock_view }}" id="live_stock_total_pages" readonly>
+            
+            <div class="pagination-stock-view" class="pagination-stock-view" style="display: flex; justify-content: center;align-items: center;gap: 15px;margin-top: 15px;">
+              <button id="previous-page-stock" data-page="{{ live_meds.page_stock_view.previous_page_number }}" class="ui small muted button">Previous</button>
+              <div>
+                  Page <input type="number" value="{{ live_meds.page_stock_view.number }}" id="live_stock_page_number" style="width: 40px;"> of <span id="live_stock_total_pages">{{ live_meds.count_stock_view }}</span>
               </div>
-              {% if live_meds.page_stock_view.has_next %}
-              <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="pagination-link">Next</button>
-              {% else %}
-              <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="pagination-link" style="display:None">Next</button>
-              {% endif %}        
-            </div>
+              <button id="next-page-stock" data-page="{{ live_meds.page_stock_view.next_page_number }}" class="ui small muted button">Next</button>
+          </div>
         </div>
     </div>
     {% comment %}the view stock tab ends here {% endcomment %}
@@ -679,7 +672,7 @@
           <i class="ui download icon right floated"></i>
         </button>
     
-        <script>
+        <script type="text/javascript">
           $("#exp_meds").click(function (e) {
             var sTable = document.getElementById("exmeds_print").innerHTML;
     
@@ -709,59 +702,50 @@
         </script>
 
 
-            <table class="ui very basic collapsing celled large fluid sortable table"
-                   style="padding-left: 2.5%;padding-right: 2.5%;padding-top: 1%;padding-bottom: 1.5%;margin: auto;">
-                <thead>
-                <tr>
-                    <th class="two wide">
-                        Medicine
-                    </th>
+              <table class="ui very basic collapsing celled large fluid sortable table"
+              style="padding-left: 2.5%;padding-right: 2.5%;padding-top: 1%;padding-bottom: 1.5%;margin: auto;">
+            <thead>
+            <tr>
+                <th class="two wide">
+                    Medicine
+                </th>
 
-          <th class="two wide">Quantity</th>
+      <th class="two wide">Quantity</th>
 
-          <th class="two wide">Expiry Date</th>
+      <th class="two wide">Expiry Date</th>
 
-          <th class="two wide">Supplier</th>
-        </tr>
-      </thead>
+      <th class="two wide">Supplier</th>
+    </tr>
+  </thead>
 
-      <tbody id="manage-stock-expired">
-        {% for view in expired.page_stock_expired.object_list %}
-        <tr>
+  <tbody id="manage-stock-expired">
+    {% for view in expired.page_stock_expired.object_list %}
+    <tr>
 
-            <td style="white-space:nowrap;">
-               {{view.medicine_id}}
-            </td>
+        <td style="white-space:nowrap;">
+          {{view.medicine_id}}
+        </td>
 
-          <td>{{view.quantity}}</td>
+      <td>{{view.quantity}}</td>
 
-          <td>{{view.Expiry_date}}</td>
+      <td>{{view.Expiry_date}}</td>
 
-                    <td style="white-space:nowrap;">
-                        {{view.supplier}}
-                    </td>
+                <td style="white-space:nowrap;">
+                    {{view.supplier}}
+                </td>
 
-                </tr>
-                {% endfor %}
+            </tr>
+            {% endfor %}
 
-                </tbody>
+            </tbody>
 
-            </table>
-            <div id="pagination-stock-expired" class="pagination-stock-expired">
-              {% if expired.page_stock_expired.has_previous %}
-              <button id="previous-page-stock-expired" data-page="{{ expired.page_stock_expired.previous_page_number }}" class="pagination-link">Previous</button>
-              {% else %}
-              <button id="previous-page-stock-expired" data-page="{{ expired.page_stock_expired.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
-              {% endif %}
-              <div class="field">
-                Page <input type="number" value="{{ expired.page_stock_expired.number }}" id="expired_page_number"> of <input type="number" value="{{ expired.count_stock_expired }}" id="expired_total_pages" readonly>
+        </table>
+            <div class="pagination-stock-expired" class="pagination-stock-expired" style="display: flex; justify-content: center;align-items: center;gap: 15px;margin-top: 15px;">
+              <button id="previous-page-stock-expired" data-page="{{ expired.page_stock_expired.previous_page_number }}" class="ui small muted button">Previous</button>
+              <div>
+                  Page <input type="number" value="{{ expired.page_stock_expired.number }}" id="expired_page_number" style="width: 40px;"> of <span id="expired_total_pages">{{ expired.count_stock_expired }}</span>
               </div>
-              {% if expired.page_stock_expired.has_next %}
-              <button id="next-page-stock-expired" data-page="{{ expired.page_stock_expired.next_page_number }}" class="pagination-link">Next</button>
-              {% else %}
-              <button id="next-page-stock-expired" data-page="{{ expired.page_stock_expired.next_page_number }}" class="pagination-link" style="display:None">Next</button>
-              {% endif %}
-
+              <button id="next-page-stock-expired" data-page="{{ expired.page_stock_expired.next_page_number }}" class="ui small muted button">Next</button>
             </div>
             <script type="text/javascript">
                   $('#returned').click(function(e)
@@ -858,18 +842,18 @@
                           if (data.stock_context.page_stock_view.has_previous) {
                             $('#previous-page-stock').data('page', data.stock_context.page_stock_view.previous_page_number).show();
                           } else {
-                            $('#previous-page-stock').hide();
+                            $('#previous-page-stock').data('page', "None").show();
                           }
                           
                           if (data.stock_context.page_stock_view.has_next) {
                             $('#next-page-stock').data('page', data.stock_context.page_stock_view.next_page_number).show();
                           } else {
-                            $('#next-page-stock').hide();
+                            $('#next-page-stock').data('page', "None").show();
                           }
                           
                           $('.pagination-stock-view span').text('Page ' + data.stock_context.page_stock_view.number + ' of ' + data.stock_context.count_stock_view);
                           document.getElementById('live_stock_page_number').value=data.stock_context.page_stock_view.number
-                          document.getElementById('live_stock_total_pages').value=data.stock_context.count_stock_view
+                          document.getElementById('live_stock_total_pages').innerHTML=data.stock_context.count_stock_view
                         }
                       })
                     })
@@ -897,8 +881,6 @@
                                         '<td style="white-space:nowrap;">'+view.supplier +'</td>' +
                                         '<td style="white-space:nowrap;">'+view.Expiry_date + '</td>' +
                                         '<td style="white-space:nowrap;">'+view.quantity + '</td>' +
-                                        
-                    
                                      '</tr>'
                                  );
                              });
@@ -906,18 +888,16 @@
                              if (data.has_previous) {
                                  $('#previous-page-stock').data('page', data.previous_page_number).show();
                              } else {
-                                 $('#previous-page-stock').hide();
+                                $('#previous-page-stock').data('page', "None").show();
                              }
          
                              if (data.has_next) {
                                  $('#next-page-stock').data('page', data.next_page_number).show();
                              } else {
-                                 $('#next-page-stock').hide();
+                                $('#next-page-stock').data('page', "None").show();
                              }
-         
-                             $('.pagination-stock-view span').text('Page ' + data.page_stock_view + ' of ' + data.total_pages_stock_view);
                              document.getElementById('live_stock_page_number').value=data.page_stock_view
-                             document.getElementById('live_stock_total_pages').value=data.total_pages_stock_view
+                             document.getElementById('live_stock_total_pages').innerHTML=data.total_pages_stock_view
                          }
                      });
                  }
@@ -930,10 +910,9 @@
                  $('#next-page-stock').click(function() {
                     const pageNumber = $(this).data('page');
                      loadPageManage(pageNumber);
-                     
                  });
                  $('#live_stock_page_number').change(function(){
-                    if( document.getElementById('live_stock_page_number').value<=0 || document.getElementById('live_stock_page_number').value > document.getElementById('live_stock_total_pages').value){
+                    if( document.getElementById('live_stock_page_number').value<=0 || document.getElementById('live_stock_page_number').value > document.getElementById('live_stock_total_pages').innerHTML){
                         alert("enter valid page number")
                     }
                     else{
@@ -967,18 +946,18 @@
                             if (data.expired_context.page_stock_expired.has_previous) {
                                 $('#previous-page-stock-expired').data('page', data.expired_context.page_stock_expired.previous_page_number).show();
                             } else {
-                                $('#previous-page-stock-expired').hide();
+                                $('#previous-page-stock-expired').data('page', "None").show();
                             }
         
                             if (data.expired_context.page_stock_expired.has_next) {
                                 $('#next-page-stock-expired').data('page', data.expired_context.page_stock_expired.next_page_number).show();
                             } else {
-                                $('#next-page-stock-expired').hide();
+                                $('#next-page-stock-expired').data('page', "None").show();
                             }
         
                             $('.pagination-stock-expired span').text('Page ' + data.expired_context.page_stock_expired.number + ' of ' + data.expired_context.count_stock_expired);
                             document.getElementById('expired_page_number').value=data.expired_context.page_stock_expired.number
-                            document.getElementById('expired_total_pages').value=data.expired_context.count_stock_expired
+                            document.getElementById('expired_total_pages').innerHTML=data.expired_context.count_stock_expired
                         }
                       })
                     })
@@ -1011,19 +990,15 @@
                              
                              if (data.has_previous) {
                                  $('#previous-page-stock-expired').data('page', data.previous_page_number).show();
-                             } else {
-                                 $('#previous-page-stock-expired').hide();
                              }
          
                              if (data.has_next) {
                                  $('#next-page-stock-expired').data('page', data.next_page_number).show();
-                             } else {
-                                 $('#next-page-stock-expired').hide();
                              }
          
                              $('.pagination-stock-expired span').text('Page ' + data.page_stock_expired + ' of ' + data.total_pages_stock_expired);
                              document.getElementById('expired_page_number').value=data.page_stock_expired
-                             document.getElementById('expired_total_pages').value=data.total_pages_stock_expired
+                             document.getElementById('expired_total_pages').innerHTML=data.total_pages_stock_expired
                          }
                      });
                  }
@@ -1039,7 +1014,7 @@
                      
                  });
                  $('#expired_page_number').change(function(){
-                    if( document.getElementById('expired_page_number').value<=0 || document.getElementById('expired_page_number').value > document.getElementById('expired_total_pages').value){
+                    if( document.getElementById('expired_page_number').value<=0 || document.getElementById('expired_page_number').value > document.getElementById('expired_total_pages').innerHTML){
                         alert("enter valid page number")
                     }
                     else{
@@ -1079,22 +1054,14 @@
         {% endif %} {% endfor %}
       </tbody>
     </table>
-    <div id="pagination-stock-required" class="pagination-stock-required">
-      {% if stocks.page_stock_required.has_previous %}
-      <button id="previous-page-stock-required" data-page="{{ stocks.page_stock_required.previous_page_number }}" class="pagination-link">Previous</button>
-      {% else %}
-      <button id="previous-page-stock-required" data-page="{{ stocks.page_stock_required.previous_page_number }}" class="pagination-link" style="display:None">Previous</button>
-      {% endif %}
-      <div class="field">
-        Page <input type="number" value="{{ stocks.page_stock_required.number }}" id="required_page_number"> of <input type="number" value="{{ stocks.count_stock_required }}" id="required_total_pages" readonly>
-      </div>
-      {% if stocks.page_stock_required.has_next %}
-      <button id="next-page-stock-required" data-page="{{ stocks.page_stock_required.next_page_number }}" class="pagination-link">Next</button>
-      {% else %}
-      <button id="next-page-stock-required" data-page="{{ stocks.page_stock_required.next_page_number }}" class="pagination-link" style="display:None">Next</button>
-      {% endif %}
 
-    </div>
+    <div id="pagination-stock-required" class="pagination-stock-required" style="display: flex; justify-content: center;align-items: center;gap: 15px;margin-top: 15px;">
+      <button id="previous-page-stock-required" data-page="{{ stocks.page_stock_required.previous_page_number }}" class="ui small muted button">Previous</button>
+      <div>
+          Page <input type="number" value="{{ stocks.page_stock_required.number }}" id="required_page_number" style="width: 40px;"> of <span id="required_total_pages">{{ stocks.count_stock_required }}</span>
+      </div>
+      <button id="next-page-stock-required" data-page="{{ stocks.page_stock_required.next_page_number }}" class="ui small muted button">Next</button>
+  </div>
     <script type="text/javascript">
       $('#search_view_required').on('submit',function(e){
       e.preventDefault();
@@ -1122,19 +1089,15 @@
                             
                             if (data.stocks.page_stock_required.has_previous) {
                                 $('#previous-page-stock-required').data('page', data.stocks.page_stock_required.previous_page_number).show();
-                            } else {
-                                $('#previous-page-stock-required').hide();
                             }
         
                             if (data.stocks.page_stock_required.has_next) {
                                 $('#next-page-stock-required').data('page', data.stocks.page_stock_required.next_page_number).show();
-                            } else {
-                                $('#next-page-stock-required').hide();
                             }
         
                             $('.pagination-stock-required span').text('Page ' + data.stocks.page_stock_required.number + ' of ' + data.stocks.count_stock_required);
                             document.getElementById('required_page_number').value=data.stocks.page_stock_required.number
-                            document.getElementById('required_total_pages').value=data.stocks.count_stock_required
+                            document.getElementById('required_total_pages').innerHTML=data.stocks.count_stock_required
                         }
                       })
                     })
@@ -1165,19 +1128,15 @@
                              
                              if (data.has_previous) {
                                  $('#previous-page-stock-required').data('page', data.previous_page_number).show();
-                             } else {
-                                 $('#previous-page-stock-required').hide();
                              }
          
                              if (data.has_next) {
                                  $('#next-page-stock-required').data('page', data.next_page_number).show();
-                             } else {
-                                 $('#next-page-stock-required').hide();
                              }
          
                              $('.pagination-stock-required span').text('Page ' + data.page_stock_required + ' of ' + data.total_pages_stock_required);
                              document.getElementById('required_page_number').value=data.page_stock_required
-                             document.getElementById('required_total_pages').value=data.total_pages_stock_required
+                             document.getElementById('required_total_pages').innerHTML=data.total_pages_stock_required
                          }
                      });
                  }
@@ -1193,7 +1152,7 @@
                      
                  });
                  $('#required_page_number').change(function(){
-                    if( document.getElementById('required_page_number').value<=0 || document.getElementById('required_page_number').value > document.getElementById('required_total_pages').value){
+                    if( document.getElementById('required_page_number').value<=0 || document.getElementById('required_page_number').value > document.getElementById('required_total_pages').innerHTML){
                         alert("enter valid page number")
                     }
                     else{

@@ -65,7 +65,7 @@
                         <p style="font-size: 2rem;font-weight: 700;">{{prescription.user_id}}'s Prescription History</p>
                     </div>
                     <div class="hidden_print">
-                        <div id="util_btns" style="height: 85px;display: flex;flex-direction: column;gap: 10px;margin-top: 15px;">
+                        <div id="util_btns" style="height: 65px;display: flex;justify-content: space-between;gap: 10px;align-items: center;">
                             <div>
                                 <button id="add_followup" class="ui medium primary button">Add Follow-up</button> 
                             </div>            
@@ -123,7 +123,7 @@
                                     Times
                                 </th>
                                 <th class="wide">
-                                    Stock
+                                    Expiry Date
                                 </th>
                                 <th class="wide">
                                     revoke
@@ -222,11 +222,11 @@
                                <div class="flex w-full">
                                 <div class="field">
                                     <label>Expiry Date</label>
-                                    <input id="stock_expiry" placeholder="stock expiery" readonly >
+                                    <input id="stock_expiry" placeholder="stock expiry" style="width: 400px;" readonly />
                                 </div>
                                 <div class="field">
                                     <label>Stock Quantity</label>
-                                    <input id="stock_quantity" placeholder="stock quantity" readonly >
+                                    <input id="stock_quantity" placeholder="stock quantity" style="width: 300px;" readonly />
                                 </div>
                          </div>
                                <div class="field">
@@ -253,7 +253,7 @@
                                     Times
                                 </th>
                                 <th class="wide">
-                                    Stock
+                                    Expiry Date
                                 </th>
                                 <th class="wide" hidden>
                                     extra
@@ -325,7 +325,7 @@
                                   Times
                               </th>
                               <th class="wide">
-                                  Stock
+                                Expiry Date
                               </th>
                           </tr>
                           </thead>
@@ -380,7 +380,7 @@
                                   Times
                               </th>
                               <th class="wide">
-                                  Stock
+                                Expiry Date
                               </th>
                           </tr>
                           </thead>
@@ -499,8 +499,8 @@
                                Times
                            </th>
                            <th class="wide">
-                               Stock
-                           </th>
+                            Expiry Date
+                          </th>
                        </tr>
                        </thead>
    
