@@ -4,6 +4,7 @@ from datetime import date
 from django.contrib.auth.models import User
 
 from applications.globals.models import ExtraInfo
+from applications.hr2.models import EmpDependents
 
 # Create your models here.
 

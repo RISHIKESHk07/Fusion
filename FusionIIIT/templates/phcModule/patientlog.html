@@ -46,11 +46,13 @@
                 <div id="dependent_hide" style="margin-bottom: 10px;">
                     <div class="field">
                         <label>Dependent Name</label>
-                        <input placeholder="Name" id="dep_name" name="dep_name" type="text">
+                        <select placeholder="Name" id="dep_name" name="dep_name" type="text" class=""ui search fluid dropdown"">
+                            <option value="" selected>--SELECT--</option>
+                        </select>
                     </div>
                     <div class="field">
                         <label>Dependent Relation</label>
-                        <input placeholder="Relation" id="dep_rel" name="dep_rel" type="text">
+                        <input placeholder="Relation" id="dep_rel" name="dep_rel" type="text" readonly>
                     </div>
                 </div>
 
@@ -201,7 +203,40 @@
                     document.getElementById("stock_expiry").value = stock_val[0]
                     document.getElementById("stock_quantity").value = stock_val[2]
                     })
-
+                
+                $("#patient_b").change(function(){
+                    dependent_select = document.getElementById('dep_name')
+                    dependent_select.options.length = 0
+                    console.log("changed user")
+                    $.ajax({
+                        type:"post",
+                        url:'/healthcenter/compounder/',
+                        data:{
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            user_for_dependents : $("#patient_b").val()
+                        },
+                        success : function(data){
+                            console.log(data)
+                            if(data.status == -1){
+                                dependent_select.options[dependent_select.options.length] = new Option("No Dependent", "No Dependent" , false , true );
+                            }else{
+                                dependent_select.options[dependent_select.options.length] =new Option("","",true , true );
+                                $.each(data.dep,function(key,value){
+                                let dep_name=value.name;
+                                let relation = value.relation
+                                dependent_select.options[dependent_select.options.length] = new Option(dep_name , dep_name+","+relation , false , false );
+                            })
+                        }
+                    }
+                    })
+                })
+                $("#dep_name").change(function(){
+                    dep_value = document.getElementById('dep_name').value.split(',')
+                    console.log(dep_value)
+                    if(dep_value.length > 1){
+                        document.getElementById('dep_rel').value = dep_value[1]
+                    }
+                })
                   $('#medicine_search_b').click(function(e){
                     name=document.getElementById('medicine_id_b').value;
                     if(name.length>2){
@@ -296,6 +331,9 @@
                                                                         document.getElementById("quantity_b").value + "</td><td>" + document.getElementById("days_b").value + "</td><td>" + document.getElementById("times_b").value + "</td><td>"+ document.getElementById("stock_b").value.split(",")[0] +","+ document.getElementById("stock_b").value.split(",")[2]  + "</td><td hidden>"+ document.getElementById("stock_b").value.split(",")[3] + "</td></tr>");
                                                                     }
                                                                }
+                                                               else if(data.status == -2){
+                                                                alert("enter valid patient id")
+                                                               }
                                                                else if(data.status==-1){
                                                                 alert("failed to add medcine")
                                                                }
@@ -339,6 +377,11 @@
                                                     var file = fileInput.files[0];
                                                     
                                                     // Create a new FormData object
+                                                    var dep_name = document.getElementById('dep_name').value
+                                                    if(dep_name == "No Dependent"){
+                                                        alert("dependent not valid")
+                                                        return false;
+                                                    }
                                                     var formData = new FormData();
                                                     if(tbl.rows.length==0){
                                                     $('#usr_b').html("Please prescribe some medicine!");
@@ -375,7 +418,9 @@
                                                           $('#sched_b').empty();
                                                           window.location.reload();
                                                         }
-
+                                                        else if(data.status == -1){
+                                                            aleart("enter valid patient id")
+                                                        }
                                                         else {
                                                             if(data.status == 0)
                                                             alert("Prescription failed!, not enough medicine available in stock");

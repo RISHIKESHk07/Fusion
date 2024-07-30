@@ -287,7 +287,7 @@
 
 
                    {% for f_pres in follow_presc %}
-                   <div id="follow_up_presc">
+                   <div class="follow_up_presc">
                    <form class="ui form">
                        <div style="margin-bottom: 10px;margin-top: 15px;">
                            <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">Follow-up</span>
@@ -439,115 +439,116 @@
                    </div>
                    </div>
                    {% endfor %}
-   
-               <form class="ui form" method="POST" style="margin-bottom: 40px;">{% csrf_token %}
-                <div style="margin-bottom: 10px;margin-top: 15px;">
-                    <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">First visit</span>
-                    <span style="font-size: 13px;">on {{prescription.date}}</span>
-                </div>
-                   <div class="">
-                     {% comment %} <div class="field">
-                         <label>Patient</label>
-                         <div class="ui fluid large input">
-                             <input placeholder="User Id" value="{{prescription.user_id}}" id="user" name="user" type="text" readonly>
-                         </div>
-                      </div> {% endcomment %}
-   
-                      <div class="field">
-                          <label>Doctor</label>
-                          <input placeholder="User Id" value="{{prescription.doctor_id}}" id="doctor" name="doctor" type="text" readonly>
-                          </select>
-                       </div>
-                   </div>
-                   {% comment %} <div class="field" >
-                        <label>Date</label>
-                        <input name="date" id="date" value="{{prescription.date}}" readonly></input>
-                    </div> {% endcomment %}
-                   {% if prescription.is_dependent == True %}
-                   <div id="dependent_hide">
-                       <div class="field">
-                           <label>Dependent Name</label>
-                           <input placeholder="dependent_name" value="{{prescription.dependent_name}}" id="" name="" type="text" readonly>
-                       </div>
-                       <div class="field">
-                           <label>Dependent Relation</label>
-                           <input placeholder="dependent_relation" value="{{prescription.dependent_relation}}" id="" name="" type="text" readonly>
-                       </div>
-                   </div>
-                   {% endif %}
-   
-                   <div class="field">
-                       <label>Detail of Disease</label>
-                       <div class="spl-textarea">{{prescription.details}}</div>
-                   </div>
-                   <table  class="ui very basic collapsing celled small fluid sortable table"
-                          style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
-                       <thead>
-                       <tr>
-                           <th class="two wide">
-                               Medicine
-                           </th>
-   
-                           <th class="two wide" >
-                               Quantity
-                           </th>
-   
-                           <th class="wide">
-                               Days
-                           </th>
-                           <th class="wide">
-                               Times
-                           </th>
-                           <th class="wide">
-                            Expiry Date
-                          </th>
-                       </tr>
-                       </thead>
-   
-                       <tbody id="">
-                        {% for med in pre_medicine %}
-                        {% if med.prescription_followup_id == None %}
-                        <tr>
-                            <td>
-                                {{med.medicine_id.brand_name}}
-                            </td>
-                            <td>
-                                {{med.quantity}}
-                            </td>
-                            <td>
-                                {{med.days}}
-                            </td>
-                            <td>
-                                {{med.times}}
-                            </td>
-                            <td>
-                                {% if med.stock == None %}
-                                NOT TAKEN FROM STOCK
-                                {% else %}
-                                   {{med.stock}}
+                   <div class="follow_up_presc">
+                    <form class="ui form" method="POST" style="margin-bottom: 40px;">{% csrf_token %}
+                        <div style="margin-bottom: 10px;margin-top: 15px;">
+                            <span style="font-size: 20px;font-weight: 900;margin-right: 5px;">First visit</span>
+                            <span style="font-size: 13px;">on {{prescription.date}}</span>
+                        </div>
+                           <div class="">
+                             {% comment %} <div class="field">
+                                 <label>Patient</label>
+                                 <div class="ui fluid large input">
+                                     <input placeholder="User Id" value="{{prescription.user_id}}" id="user" name="user" type="text" readonly>
+                                 </div>
+                              </div> {% endcomment %}
+           
+                              <div class="field">
+                                  <label>Doctor</label>
+                                  <input placeholder="User Id" value="{{prescription.doctor_id}}" id="doctor" name="doctor" type="text" readonly>
+                                  </select>
+                               </div>
+                           </div>
+                           {% comment %} <div class="field" >
+                                <label>Date</label>
+                                <input name="date" id="date" value="{{prescription.date}}" readonly></input>
+                            </div> {% endcomment %}
+                           {% if prescription.is_dependent == True %}
+                           <div id="dependent_hide">
+                               <div class="field">
+                                   <label>Dependent Name</label>
+                                   <input placeholder="dependent_name" value="{{prescription.dependent_name}}" id="" name="" type="text" readonly>
+                               </div>
+                               <div class="field">
+                                   <label>Dependent Relation</label>
+                                   <input placeholder="dependent_relation" value="{{prescription.dependent_relation}}" id="" name="" type="text" readonly>
+                               </div>
+                           </div>
+                           {% endif %}
+           
+                           <div class="field">
+                               <label>Detail of Disease</label>
+                               <div class="spl-textarea">{{prescription.details}}</div>
+                           </div>
+                           <table  class="ui very basic collapsing celled small fluid sortable table"
+                                  style="padding-left: 2.5%;padding-right: 2.5%;margin: auto;">
+                               <thead>
+                               <tr>
+                                   <th class="two wide">
+                                       Medicine
+                                   </th>
+           
+                                   <th class="two wide" >
+                                       Quantity
+                                   </th>
+           
+                                   <th class="wide">
+                                       Days
+                                   </th>
+                                   <th class="wide">
+                                       Times
+                                   </th>
+                                   <th class="wide">
+                                    Expiry Date
+                                  </th>
+                               </tr>
+                               </thead>
+           
+                               <tbody id="">
+                                {% for med in pre_medicine %}
+                                {% if med.prescription_followup_id == None %}
+                                <tr>
+                                    <td>
+                                        {{med.medicine_id.brand_name}}
+                                    </td>
+                                    <td>
+                                        {{med.quantity}}
+                                    </td>
+                                    <td>
+                                        {{med.days}}
+                                    </td>
+                                    <td>
+                                        {{med.times}}
+                                    </td>
+                                    <td>
+                                        {% if med.stock == None %}
+                                        NOT TAKEN FROM STOCK
+                                        {% else %}
+                                           {{med.stock}}
+                                        {% endif %}
+                                    </td>
+                                </tr>
                                 {% endif %}
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                       </tbody>
-                   </table>
-                   <div class="field">
-                       <label>Tests Suggested</label>
-                       <div class="spl-textarea">
-                            {% if prescription.test == "" %}
-                                 No Test suggested
-                            {% else %}
-                                 {{prescription.test}}
+                                {% endfor %}
+                               </tbody>
+                           </table>
+                           <div class="field">
+                               <label>Tests Suggested</label>
+                               <div class="spl-textarea">
+                                    {% if prescription.test == "" %}
+                                         No Test suggested
+                                    {% else %}
+                                         {{prescription.test}}
+                                    {% endif %}
+                               </div>
+                           </div>
+                            {% if prescription.file_id != 0 %}
+                            <div class="hidden_print" style="margin-botttom: 20px;">
+                                <button id="{{prescription.file_id}}" onclick="view_report(this)" class="ui small left floated primary button" >View Report</button>
+                            </div>
                             {% endif %}
-                       </div>
-                   </div>
-                    {% if prescription.file_id != 0 %}
-                    <div class="hidden_print" style="margin-botttom: 20px;">
-                        <button id="{{prescription.file_id}}" onclick="view_report(this)" class="ui small left floated primary button" >View Report</button>
+                        </form>
                     </div>
-                    {% endif %}
-                </form>
                 </div>
                 <br>
                 
@@ -853,11 +854,11 @@
             }
             let reqHtml = '';
             if(follow_up){
-                var captures = document.querySelectorAll('#follow_up_presc');
+                var captures = document.querySelectorAll('.follow_up_presc');
                 reqHtml = `
                     <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
                     <div>
-                        <p style="font-size: 1.3rem;font-weight: 700;">{{prescription.user_id}}'s Latest Follow-up</p>
+                        <p style="font-size: 1.3rem;font-weight: 700;">Patient ID : {{prescription.user_id}}</p>
                         <p>Of prescription ID #{{prescription.id}} on {{prescription.date}}</p>
                     </div>
                     ${captures[0].innerHTML}

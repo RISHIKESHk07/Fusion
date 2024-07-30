@@ -17,6 +17,8 @@ from applications.filetracking.sdk.methods import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from applications.globals.models import ExtraInfo
+from applications.hr2.models import EmpDependents
 
 def datetime_handler(date):
     '''
@@ -371,6 +373,8 @@ def compounder_view_handler(request):
             return JsonResponse({"val": val_to_return, "sim": similar_name, "status": status})
     elif 'medicine_name_b' in request.POST:
         user_id = request.POST.get('user')
+        if not User.objects.filter(username__iexact = user_id).exists():
+            return JsonResponse({"status":-2}) 
         quantity = int(request.POST.get('quantity'))
         days = int(request.POST.get('days'))
         times = int(request.POST.get('times'))
@@ -459,9 +463,25 @@ def compounder_view_handler(request):
         healthcare_center_notif(request.user, user.user, 'presc','')
         data = {'status': status, 'stock': stock}
         return JsonResponse(data)
+    elif 'user_for_dependents' in request.POST:
+        user = request.POST.get('user_for_dependents')
+        if not User.objects.filter(username__iexact = user).exists():
+            return JsonResponse({"status":-1})
+        user_id = User.objects.get(username__iexact = user)
+        info = ExtraInfo.objects.get(user = user_id)
+        dep_info = EmpDependents.objects.filter(extra_info = info)
+        dep=[]
+        for d in dep_info:
+            obj={}
+            obj['name'] = d.name
+            obj['relation'] = d.relationship 
+            dep.append(obj)
+        return JsonResponse({'status':1,'dep':dep}) 
     elif 'prescribe_b' in request.POST:
         user_id = request.POST.get('user')
         doctor_id = request.POST.get('doctor')
+        if not User.objects.filter(username__iexact = user_id).exists():
+            return JsonResponse({"status":-1}) 
         print(doctor_id)
         if doctor_id == 'null' :
             doctor = None
