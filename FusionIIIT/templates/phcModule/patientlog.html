@@ -46,7 +46,7 @@
                 <div id="dependent_hide" style="margin-bottom: 10px;">
                     <div class="field">
                         <label>Dependent Name</label>
-                        <select placeholder="Name" id="dep_name" name="dep_name" type="text" class=""ui search fluid dropdown"">
+                        <select placeholder="Name" id="dep_name" name="dep_name" type="text" class="ui search fluid dropdown">
                             <option value="" selected>--SELECT--</option>
                         </select>
                     </div>
@@ -193,6 +193,7 @@
                         dep.style.display="block"
                     }
                     if(src.value=="self"){
+                        document.getElementById('dep_name').value=""
                         dep.style.display="none"
                     }
                 }
@@ -208,6 +209,7 @@
                     dependent_select = document.getElementById('dep_name')
                     dependent_select.options.length = 0
                     console.log("changed user")
+                    document.getElementById('dep_rel').value=""
                     $.ajax({
                         type:"post",
                         url:'/healthcenter/compounder/',
@@ -218,8 +220,14 @@
                         success : function(data){
                             console.log(data)
                             if(data.status == -1){
+                                alert("invalid patient id")
+                                dependent_select.options[dependent_select.options.length] = new Option("No Dependent", dependent_select, true , true );
+                                dependent_select.value =  "dependent_select"
+                            }
+                            else if(data.status == -2){
                                 dependent_select.options[dependent_select.options.length] = new Option("No Dependent", "No Dependent" , false , true );
-                            }else{
+                            }
+                            else{
                                 dependent_select.options[dependent_select.options.length] =new Option("","",true , true );
                                 $.each(data.dep,function(key,value){
                                 let dep_name=value.name;
@@ -378,7 +386,7 @@
                                                     
                                                     // Create a new FormData object
                                                     var dep_name = document.getElementById('dep_name').value
-                                                    if(dep_name == "No Dependent"){
+                                                    if($('input[name="is_dependent"]:checked').val()=="dependent" && dep_name == "No Dependent"){
                                                         alert("dependent not valid")
                                                         return false;
                                                     }

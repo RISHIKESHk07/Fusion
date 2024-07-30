@@ -476,6 +476,8 @@ def compounder_view_handler(request):
             obj['name'] = d.name
             obj['relation'] = d.relationship 
             dep.append(obj)
+        if(len(dep) == 0) :
+            return JsonResponse({'status':-2})
         return JsonResponse({'status':1,'dep':dep}) 
     elif 'prescribe_b' in request.POST:
         user_id = request.POST.get('user')
