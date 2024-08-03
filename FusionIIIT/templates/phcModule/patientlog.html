@@ -408,7 +408,7 @@
                                                     formData.append('tests', $("#tests_b").val());
                                                     formData.append('prescribe_b', $("#prescribe_b").val());
                                                     formData.append('is_dependent',$('input[name="is_dependent"]:checked').val());
-                                                    formData.append('dependent_name',$("#dep_name").val());
+                                                    formData.append('dependent_name',$("#dep_name").val().split(',')[0]);
                                                     formData.append('dependent_relation',$("#dep_rel").val());
                                                     formData.append('pre_medicine',JSON.stringify(medicine));
                                                     $.ajax({
