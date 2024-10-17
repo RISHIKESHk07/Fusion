@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.shortcuts import render
 from applications.gymkhana.models import Registration_form, Student ,Club_info,Club_member,Session_info,Event_info,Club_budget,Club_report,Fest_budget,Registration_form,Budget
+from applications.globals.models import ExtraInfo
 from .serializers import Club_memberSerializer,Club_DetailsSerializer,Session_infoSerializer, event_infoserializer,club_budgetserializer,Club_reportSerializers,Fest_budgerSerializer,Registration_formSerializer, Club_infoSerializer,BudgetSerializer
 
 from django.contrib.auth.models import User
@@ -959,3 +960,89 @@ class RejectEventAPIView(APIView):
         event.status = 'REJECT'
         event.save()
         return Response({"message": "Event status changed to 'Rejected'."}, status=status.HTTP_200_OK)
+    
+class EventInfoAPIView(APIView):
+    def get(self, request):
+        # Get the club name from the request (passed as a query parameter)
+        club_name = request.query_params.get('club_name')
+        
+        # Get the club based on club_name (since club_name is the primary key)
+        club = get_object_or_404(Club_info, club_name=club_name)
+
+        # Get all events associated with the club
+        events = Event_info.objects.filter(club=club)
+
+        # Check if there are events for the club
+        if not events.exists():
+            return Response({"message": "No events found for this club."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the club and events using the previously defined serializers
+        club_serializer = Club_infoSerializer(club)
+        event_serializer = event_infoserializer(events, many=True)
+
+        # Return the serialized data
+        return Response({
+            "club": club_serializer.data,
+            "events": event_serializer.data
+        }, status=status.HTTP_200_OK)
+
+class ClubStudentsAPIView(APIView):
+    def get(self, request, club_name):
+        try:
+            # Get the club info first
+            club_info = get_object_or_404(Club_info, club_name=club_name)
+            
+            response_data = []
+            coordinator_id = str(club_info.co_ordinator.id).split(' - ')[0]
+            cocoordinator_id = str(club_info.co_coordinator.id).split(' - ')[0]
+            
+            # Get all members
+            club_members = Club_member.objects.filter(club=club_info)
+            print(f"Found {club_members.count()} total members")
+            
+            # Process all members
+            for member in club_members:
+                member_id = str(member.member.id).split(' - ')[0]
+                
+                # Determine role based on member id
+                if member_id == coordinator_id:
+                    role = 'co-ordinator'
+                elif member_id == cocoordinator_id:
+                    role = 'co-coordinator'
+                else:
+                    role = 'member'
+                
+                member_data = {
+                    'roll_number': member_id,
+                    'username': member.member.id.user.first_name + " " + member.member.id.user.last_name,
+                    'role': role
+                }
+                response_data.append(member_data)
+            
+            # Add coordinator if not in members list
+            if not any(d['roll_number'] == coordinator_id for d in response_data):
+                coordinator_data = {
+                    'roll_number': coordinator_id,
+                    'username': club_info.co_ordinator.id.user.first_name + " " + club_info.co_ordinator.id.user.last_name,
+                    'role': 'co-ordinator'
+                }
+                response_data.append(coordinator_data)
+            
+            # Add co-coordinator if not in members list
+            if not any(d['roll_number'] == cocoordinator_id for d in response_data):
+                cocoordinator_data = {
+                    'roll_number': cocoordinator_id,
+                    'username': club_info.co_coordinator.id.user.first_name + " " + club_info.co_coordinator.id.user.last_name,
+                    'role': 'co-coordinator'
+                }
+                response_data.append(cocoordinator_data)
+            
+            print(f"Total response data: {len(response_data)} entries")
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Detailed error: {str(e)}")
+            return Response(
+                {'error': f'An error occurred: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

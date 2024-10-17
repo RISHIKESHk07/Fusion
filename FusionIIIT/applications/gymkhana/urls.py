@@ -3,7 +3,7 @@ from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from applications.gymkhana.api.views import AddClub_BudgetAPIView, AddMemberToClub, ApproveEvent, ChangeHeadAPIView,   ClubMemberAPIView, ClubMemberApproveView, ClubMemberDeleteAPIView, CreateClubAPIView,  DeleteClubAPIView, DeleteClubBudgetAPIView,  EventDeleteAPIView, EventUpdateAPIView, SessionUpdateAPIView, UpdateClubBudgetAPIView, UpdateClubNameAPIView, UpdateClubStatusAPIView, UploadActivityCalendarAPIView
 from applications.gymkhana.api.views import clubname,Club_Details,club_events,club_budgetinfo,Fest_Budget,club_report,Registraion_form
-from applications.gymkhana.api.views import session_details
+from applications.gymkhana.api.views import session_details, EventInfoAPIView, ClubStudentsAPIView
 from applications.gymkhana.api.views import DeleteSessionsView, NewEventAPIView, NewSessionAPIView,Club_Detail,UpcomingEventsAPIView,PastEventsAPIView,Budgetinfo,AddClubAPI,NewBudgetAPIView,FICApproveBudgetAPIView,CounsellorApproveBudgetAPIView,DeanApproveBudgetAPIView,FICApproveEventAPIView,CounsellorApproveEventAPIView,DeanApproveEventAPIView
 from . import views
 from rest_framework.authtoken.views import obtain_auth_token
@@ -145,6 +145,7 @@ urlpatterns = [
     #counsellor approve event api
     url(r'^api/counsellor_approve_event/$',  CounsellorApproveEventAPIView.as_view(), name='counsellor approve event'),
     #dean approve event api
-    url(r'^api/dean_approve_event/$',  DeanApproveEventAPIView.as_view(), name='dean approve event')
-   
+    url(r'^api/dean_approve_event/$',  DeanApproveEventAPIView.as_view(), name='dean approve event'),
+    url(r'^api/event_info/$',  EventInfoAPIView.as_view(), name='event_info'),
+    path('api/members_info/<str:club_name>/', ClubStudentsAPIView.as_view(), name='club_students'),
 ]
