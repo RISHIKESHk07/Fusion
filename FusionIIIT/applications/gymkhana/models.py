@@ -357,37 +357,50 @@ class Club_report(models.Model):
 
     class Meta:
         db_table = "Club_report"
-
-
-class Fest_budget(models.Model):
-    """
-    It has details regarding the budget for the fest.
-
-    id - serial_number
-    fest - name of the fest for which this budget required
-    budget_amt - amount needed for the fest
-    budget_file - It is a file which contains complete details regarding the budget that is going to spent for fest
-    year - year in which the fest takes place
-    description  - brief explanation regarding budget if any
-    status - wheather budget is approved or rejected
-    remarks - negative things regarding budget
-
-    """
-
-    id = models.AutoField(primary_key=True)
-    fest = models.CharField(max_length=50, null=False, choices=Constants.fest)
-    budget_amt = models.IntegerField(default=0, null=False)
-    budget_file = models.FileField(upload_to="uploads/", null=False)
-    year = models.CharField(max_length=10, null=True)
-    description = models.TextField(max_length=256, null=False)
-    status = models.CharField(max_length=50, choices=Constants.status, default="open")
-    remarks = models.CharField(max_length=256, null=True)
-
+        
+class Fest(models.Model):
+    id=models.AutoField(primary_key=True)
+    name=models.CharField(max_length=50, null=False)
+    category=models.CharField(max_length=50, null=False)
+    description=models.TextField(max_length=256, null=True)
+    date = models.DateField(default=None, auto_now=False, null=False)
+    link=models.CharField(max_length=256, null=True)
+    
     def __str__(self):
         return str(self.id)
-
     class Meta:
-        db_table = "Fest_budget"
+        db_table="fest"
+    
+
+# class Fest_budget(models.Model):
+#     """
+#     It has details regarding the budget for the fest.
+
+#     id - serial_number
+#     fest - name of the fest for which this budget required
+#     budget_amt - amount needed for the fest
+#     budget_file - It is a file which contains complete details regarding the budget that is going to spent for fest
+#     year - year in which the fest takes place
+#     description  - brief explanation regarding budget if any
+#     status - wheather budget is approved or rejected
+#     remarks - negative things regarding budget
+
+#     """
+
+#     id = models.AutoField(primary_key=True)
+#     fest = models.CharField(max_length=50, null=False, choices=Constants.fest)
+#     budget_amt = models.IntegerField(default=0, null=False)
+#     budget_file = models.FileField(upload_to="uploads/", null=False)
+#     year = models.CharField(max_length=10, null=True)
+#     description = models.TextField(max_length=256, null=False)
+#     status = models.CharField(max_length=50, choices=Constants.status, default="open")
+#     remarks = models.CharField(max_length=256, null=True)
+
+#     def __str__(self):
+#         return str(self.id)
+
+#     class Meta:
+#         db_table = "Fest_budget"
 
 
 class Other_report(models.Model):

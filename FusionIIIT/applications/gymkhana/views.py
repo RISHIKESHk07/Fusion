@@ -1597,41 +1597,6 @@ def new_event(request):
         return HttpResponse(content)
 
 
-@login_required
-def fest_budget(request):
-    """
-    This view uploads the budget details for the fest to the database.
-    Then the academic management can check the budget and accordingly allot the budget.
-
-    @param:
-          fest - takes the name of the fest
-              budget_amt - the amount that is needed for the club
-              budget_file - have to upload the file that contails all details about the budget for fest
-              descrition - anything that we want write about fest
-              year - year fest is happening
-              fest_budget - the given details saved to the database
-
-    """
-    if request.method == "POST" and request.FILES["file"]:
-        fest = request.POST.get("fest")
-        budget_amt = request.POST.get("amount")
-        budget_file = request.FILES["file"]
-        desc = request.POST.get("d_d")
-        year = request.POST.get("year")
-        budget_file.name = fest + "_budget_" + year
-
-        fest_budget = Fest_budget(
-            fest=fest,
-            budget_amt=budget_amt,
-            budget_file=budget_file,
-            description=desc,
-            year=year,
-        )
-        fest_budget.save()
-        messages.success(request, "Successfully uploaded the budget !!!")
-
-    return redirect("/gymkhana/")
-
 
 @login_required
 def approve(request):

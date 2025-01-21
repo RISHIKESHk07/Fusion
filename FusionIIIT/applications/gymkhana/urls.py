@@ -1,10 +1,10 @@
 from django.conf.urls import url
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
-from applications.gymkhana.api.views import AddClub_BudgetAPIView, AddMemberToClub, ApproveEvent, ChangeHeadAPIView,   ClubMemberAPIView, ClubMemberApproveView, ClubMemberDeleteAPIView, CreateClubAPIView,  DeleteClubAPIView, DeleteClubBudgetAPIView,  EventDeleteAPIView, EventUpdateAPIView, SessionUpdateAPIView, UpdateClubBudgetAPIView, UpdateClubNameAPIView, UpdateClubStatusAPIView, UploadActivityCalendarAPIView,ModifyEventAPIView,ModifyBudgetAPIView,RejectEventAPIView,RejectBudgetAPIView,UpdateEventAPIView
-from applications.gymkhana.api.views import clubname,Club_Details,club_events,club_budgetinfo,Fest_Budget,club_report,Registraion_form
-from applications.gymkhana.api.views import session_details
-from applications.gymkhana.api.views import DeleteSessionsView, NewEventAPIView, NewSessionAPIView,Club_Detail,UpcomingEventsAPIView,PastEventsAPIView,Budgetinfo,AddClubAPI,NewBudgetAPIView,FICApproveBudgetAPIView,CounsellorApproveBudgetAPIView,DeanApproveBudgetAPIView,FICApproveEventAPIView,CounsellorApproveEventAPIView,DeanApproveEventAPIView,AddAchievementAPIView,AchievementsAPIView,CreateBudgetCommentAPIView,CreateEventCommentAPIView,ListBudgetCommentsAPIView,ListEventCommentsAPIView,AddClubPositionAPIView,ListClubPositionAPIView
+from applications.gymkhana.api.views import AddClub_BudgetAPIView, AddMemberToClub, ApproveEvent, ChangeHeadAPIView,   ClubMemberAPIView, ClubMemberApproveView, ClubMemberDeleteAPIView, CreateClubAPIView,  DeleteClubAPIView, DeleteClubBudgetAPIView,  EventDeleteAPIView, EventUpdateAPIView, FestListView, SessionUpdateAPIView, UpdateClubBudgetAPIView, UpdateClubNameAPIView, UpdateClubStatusAPIView, UploadActivityCalendarAPIView,ModifyEventAPIView,ModifyBudgetAPIView,RejectEventAPIView,RejectBudgetAPIView,UpdateEventAPIView
+from applications.gymkhana.api.views import clubname,Club_Details,club_events,club_budgetinfo,club_report,Registraion_form
+from applications.gymkhana.api.views import session_details,UpdateBudgetAPIView
+from applications.gymkhana.api.views import DeleteSessionsView, NewEventAPIView,NewFestAPIView, NewSessionAPIView,Club_Detail,UpcomingEventsAPIView,PastEventsAPIView,Budgetinfo,AddClubAPI,NewBudgetAPIView,FICApproveBudgetAPIView,CounsellorApproveBudgetAPIView,DeanApproveBudgetAPIView,FICApproveEventAPIView,CounsellorApproveEventAPIView,DeanApproveEventAPIView,AddAchievementAPIView,AchievementsAPIView,CreateBudgetCommentAPIView,CreateEventCommentAPIView,ListBudgetCommentsAPIView,ListEventCommentsAPIView,AddClubPositionAPIView,ListClubPositionAPIView
 from . import views
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -30,7 +30,8 @@ urlpatterns = [
     # api for "clubdetails" method="get" with TokenAuthentication
     url(r"^clubdetails/$", Club_Details.as_view()),
     # api for "clubname" method="get" with TokenAuthentication
-    url(r"^Fest_budget/$", Fest_Budget.as_view(), name="Fest_budget"),
+    # url(r"^Fest_budget/$", Fest_Budget.as_view(), name="Fest_budget"),
+    url(r"^fest/$" , FestListView.as_view(), name="fest"),
     # api for "festbudget" method="get" with TokenAuthentication
     url(r"^club_report/$", club_report.as_view()),
     # api for "club_report" method="get" with TokenAuthentication
@@ -59,6 +60,7 @@ urlpatterns = [
     url(r"^reject/$", views.reject, name="reject"),
     url(r"^cancel/$", views.cancel, name="cancel"),
     url(r"^new_event/$", views.new_event, name="new_event"),
+    # url(r"^fest/$", views.new_fest, name="fest"),
     url(r"^new_session/$", views.new_session, name="new_session"),
     url(r"^event_report/$", views.event_report, name="event_report"),
     url(r"^club_event_report/$", views.club_report, name="club_report"),
@@ -91,7 +93,7 @@ urlpatterns = [
     url(r"^get_venue/$", views.getVenue, name="get_venue"),
     # core_team
     # url(r"^core_team/$", views.core_team, name="core_team"),
-    url(r"^festbudget/$", views.fest_budget, name="fest_budget"),
+    # url(r"^festbudget/$", views.fest_budget, name="fest_budget"),
     # fic
     # url(r"^Inventory_update/$", views.core_team, name="Inventory_update"),
     url(r"^del_club/$", views.del_club, name="del_club"),
@@ -116,6 +118,7 @@ urlpatterns = [
     url(r'^api/members_records/$', ClubMemberAPIView.as_view(), name='club_members'),
     url(r'^api/member_approve/$', ClubMemberApproveView.as_view(), name='approval'),
     url(r'^api/member_reject/$', ClubMemberDeleteAPIView.as_view(), name='reject'),
+    url(r'^api/new_fest/$', NewFestAPIView.as_view(), name='new_fest'),
     url(r'^api/club_membership/$', AddMemberToClub.as_view(), name='new_club_member'),
     # url(r'^api/show_voting_choices/$', ShowVotingChoicesAPIView.as_view(), name='voting_choices'),
     # url(r'^api/delete_poll/$', VotingPollsDeleteAPIView.as_view(), name='delete poll'),
@@ -160,4 +163,5 @@ urlpatterns = [
     url(r'^api/list_club_position/$',  ListClubPositionAPIView.as_view(), name='list club position'),
     url(r'^/api/new_event/$', UpdateEventAPIView.as_view(), name='update event'),
     url(r'^api/update_event/$',  UpdateEventAPIView.as_view(), name='update event'),
+    url(r'^api/update_budget/$',  UpdateBudgetAPIView.as_view(), name='update budget'),
 ]

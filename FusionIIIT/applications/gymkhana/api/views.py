@@ -11,8 +11,8 @@ from rest_framework.decorators import api_view, permission_classes,authenticatio
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.shortcuts import render
-from applications.gymkhana.models import Registration_form, Student ,Club_info,Club_member,Session_info,Event_info,Club_budget,Club_report,Fest_budget,Registration_form,Budget,Achievements,ClubPosition
-from .serializers import Club_memberSerializer,Club_DetailsSerializer,Session_infoSerializer, event_infoserializer,club_budgetserializer,Club_reportSerializers,Fest_budgerSerializer,Registration_formSerializer, Club_infoSerializer,BudgetSerializer,AchievementsSerializer,Event_CommentsSerializer,Budget_CommentsSerializer,ClubPositionSerializer
+from applications.gymkhana.models import Registration_form, Student ,Club_info,Club_member,Session_info,Event_info,Fest,Club_budget,Club_report,Registration_form,Budget,Achievements,ClubPosition
+from .serializers import Club_memberSerializer,Club_DetailsSerializer,FestSerializer,Session_infoSerializer, event_infoserializer,FestSerializer,club_budgetserializer,Club_reportSerializers,Registration_formSerializer, Club_infoSerializer,BudgetSerializer,AchievementsSerializer,Event_CommentsSerializer,Budget_CommentsSerializer,ClubPositionSerializer
 
 from django.contrib.auth.models import User
 from applications.gymkhana.views import *
@@ -352,11 +352,17 @@ class club_report(APIView):
         serializer = Club_reportSerializers(clubreport , many=True)
         return Response(serializer.data)
 
-class Fest_Budget(APIView):
+# class Fest_Budget(APIView):
 
+#     def get(self,respect):
+#         festbudget=Fest_budget.objects.all()
+#         serializer=Fest_budgerSerializer(festbudget, many=True)
+#         return Response(serializer.data)
+
+class FestListView(APIView):
     def get(self,respect):
-        festbudget=Fest_budget.objects.all()
-        serializer=Fest_budgerSerializer(festbudget, many=True)
+        fests=Fest.objects.all();
+        serializer=FestSerializer(fests, many=True)
         return Response(serializer.data)
 
 class Registraion_form(APIView):
@@ -402,7 +408,19 @@ class NewEventAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class NewFestAPIView(APIView):
+    def get(self, request):
+        fests = Fest.objects.all()
+        serializer = FestSerializer(fests, many=True)
+        return Response(serializer.data)
     
+    def post(self, request):
+        serializer = FestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
 
 # class DeleteEventsView(APIView):
@@ -1076,6 +1094,33 @@ class UpdateEventAPIView(APIView):
         
         # Create serializer instance with partial=True to allow partial updates
         serializer = event_infoserializer(event, data=data, partial=True)
+
+        # Validate and update
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UpdateBudgetAPIView(APIView):
+    def put(self, request):
+        try:
+            # Fetch the event to be updated
+            pk = request.data.get('id')
+            budget = Budget.objects.get(pk=pk)
+        except Budget.DoesNotExist:
+            return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Partial update for 'details' and 'event_poster'
+        data = {}
+        if 'budget_amt' in request.data:
+            data['budget_amt'] = request.data['budget_amt']
+        if 'remarks' in request.data:
+            data['remarks'] = request.data['remarks']
+        if 'budget_file' in request.FILES:
+            data['budget_file'] = request.FILES['budget_file']
+        data['status'] = 'FIC'
+        
+        # Create serializer instance with partial=True to allow partial updates
+        serializer = BudgetSerializer(budget, data=data, partial=True)
 
         # Validate and update
         if serializer.is_valid():
