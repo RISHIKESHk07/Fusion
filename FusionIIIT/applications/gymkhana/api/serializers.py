@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
 from applications.gymkhana.models import Club_info,Session_info,Event_info
-from applications.gymkhana.models import Club_member,Club_budget,Club_report,Fest_budget,Registration_form,Budget,Budget_Comments,Event_Comments
+from applications.gymkhana.models import Club_member,Club_budget,Club_report,Fest_budget,Fest,Registration_form,Budget,Budget_Comments,Event_Comments,Achievements,ClubPosition
 
 # class Voting_choicesSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -37,7 +37,7 @@ class Club_memberSerializer(serializers.ModelSerializer):
 class Club_DetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model=Club_info
-        fields=['club_name',"co_ordinator","co_coordinator","activity_calender","category",'faculty_incharge',"club_file", "status"]
+        fields=['club_name',"co_ordinator","co_coordinator","activity_calender","category",'faculty_incharge',"club_file", "status" ,"description"]
 
 class Session_infoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,13 +50,13 @@ class event_infoserializer(serializers.ModelSerializer):
 
     class Meta:
         model=Event_info
-        fields=['club','event_name','incharge','start_date','end_date','venue','start_time','id','details','status']
+        fields=['club','event_name','incharge','start_date','end_date','venue','start_time','id','details','status','end_time','details']
 
 class club_budgetserializer(serializers.ModelSerializer):
 
     class Meta:
         model=Club_budget
-        fields=['club','budget_for','budget_amt','budget_file','status','id','description']
+        fields=['club','budget_for','budget_amt','budget_file','status','id','description','remarks']
 
 class Club_reportSerializers(serializers.ModelSerializer):
     class Meta:
@@ -82,3 +82,24 @@ class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
         fields = ['id', 'club', 'budget_for', 'budget_amt', 'budget_file', 'description', 'status', 'remarks']
+class AchievementsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Achievements
+        fields = ['id', 'club_name', 'title', 'achievement']
+class Budget_CommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget_Comments
+        fields = ['budget_id', 'commentator_designation', 'comment', 'comment_date', 'comment_time']
+class Event_CommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event_Comments
+        fields = ['event_id', 'commentator_designation', 'comment', 'comment_date', 'comment_time']
+class ClubPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClubPosition
+        fields = ['id', 'name', 'position', 'club']
+
+class FestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Fest
+        fields= ['id', 'name', 'category', 'description', 'date', 'link']

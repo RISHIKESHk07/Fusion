@@ -27,7 +27,7 @@ class Constants:
         ("Sports", "Sports"),
         ("Cultural", "Cultural"),
     )
-    status = (("open", "Open"), ("confirmed", "Confirmed"), ("rejected", "Rejected"))
+    status = (("open", "Open"), ("confirmed", "Confirmed"), ("rejected", "Rejected") ,("member", "Member"),("co-ordinator", "Co-ordinator"),("Co-cordinator", "Co-cordinator"))
     STATUS_CHOICES = (
         ('ACCEPT', 'Accepted'),
         ('REJECT', 'Rejected'),
@@ -358,6 +358,18 @@ class Club_report(models.Model):
     class Meta:
         db_table = "Club_report"
 
+class Fest(models.Model):
+    id=models.AutoField(primary_key=True)
+    name=models.CharField(max_length=50, null=False)
+    category=models.CharField(max_length=50, null=False, choices=Constants.categoryCh)
+    description=models.TextField(max_length=256, null=True)
+    date = models.DateField(default=None, auto_now=False, null=False)
+    link=models.CharField(max_length=256, null=True)
+
+    def _str_(self):
+        return str(self.id)
+    class Meta:
+        db_table="fest"
 
 class Fest_budget(models.Model):
     """
@@ -590,7 +602,7 @@ class Event_Comments(models.Model):
     - comment_time: The time the comment was made
     """
 
-    Event_id = models.ForeignKey('Event_info', on_delete=models.CASCADE, related_name='comments') 
+    event_id = models.ForeignKey('Event_info', on_delete=models.CASCADE, related_name='comments') 
     commentator_designation = models.CharField(max_length=100, null=False)  
     comment = models.TextField(null=False)  # The actual comment
     comment_date = models.DateField(default=timezone.now, null=False)  # Date of the comment
@@ -601,3 +613,30 @@ class Event_Comments(models.Model):
 
     class Meta:
         db_table = "Event_Comments"
+class Achievements(models.Model):
+    id = models.AutoField(primary_key=True) 
+    club_name = models.CharField(max_length=100, null=False) 
+    title = models.CharField(max_length=100, null=False)
+    achievement = models.TextField(null=False)
+    def _str_(self):
+        return f"{self.club_name} - {self.achievement}"
+
+    class Meta:
+        db_table = "Achievements"
+class ClubPosition(models.Model):
+    POSITION_CHOICES = [
+        ('FIC', 'FIC'),
+        ('COORDINATOR', 'Coordinator'),
+        ('TECHNICAL_COUNSELLOR','Technical counsellor'),
+        ('SPORTS_COUNSELLOR','Sports counsellor'),
+        ('CULTURAL_COUNSELLOR','Cultural counsellor')
+    ]
+    name = models.CharField(max_length=100, null=False)
+    position = models.CharField(max_length=50, choices=POSITION_CHOICES, null=False)
+    club = models.ForeignKey(Club_info, on_delete=models.CASCADE)
+    class Meta:
+        db_table = 'ClubPosition'
+    def _str_(self):
+        return f"{self.club.club_name} - {self.name} - {self.position}"
+    class Meta:
+        db_table = "ClubPosition"
