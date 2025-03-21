@@ -1,7 +1,7 @@
 import genericpath
 import json
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from venv import logger
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
@@ -47,9 +47,16 @@ from .serializers import (
     Budget_CommentsSerializer,
     ClubPositionSerializer,
     FestSerializer,
+    EventInputSerializer
 )
-from applications.gymkhana.models import Registration_form, Student ,Club_info,Club_member,Session_info,Event_info,Club_budget,Club_report,Fest_budget,Registration_form,Budget
-from .serializers import Club_memberSerializer,Club_DetailsSerializer,Session_infoSerializer, event_infoserializer,club_budgetserializer,Club_reportSerializers,Fest_budgerSerializer,Registration_formSerializer, Club_infoSerializer,BudgetSerializer
+from io import BytesIO
+from django.http import FileResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image, HRFlowable, PageBreak
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 from django.contrib.auth.models import User
 from applications.gymkhana.views import *
@@ -178,8 +185,8 @@ class ClubMemberApproveView(generics.UpdateAPIView):
                 {"error": "Club member not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-        # Update the status of the club member
-        club_member.status = "member"  # Assuming 'member' is the status for approval
+        # Update the status of the club member        
+        club_member.status = 'member'  # Assuming 'member' is the status for approval
         club_member.save()
 
         return Response(
@@ -349,8 +356,7 @@ class ClubMemberAPIView(APIView):
         club_members = Club_member.objects.filter(club_id=club_member_id)
         serializer = Club_memberSerializer(club_members, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+    
 class RegistrationFormAPIView(APIView):
     """
     API endpoint to handle registration form submissions.
@@ -1073,6 +1079,11 @@ class AddClubAPI(APIView):
 class NewEventAPIView(APIView):
     def put(self, request):
         request.data["status"] = "FIC"
+        club = Club_info.objects.get(club_name=request.data['club'])
+        if club.category == "Cultural":
+            request.data['status'] = 'COUNSELLOR'
+        else:
+            request.data['status'] = 'FIC'
         serializer = event_infoserializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1137,6 +1148,11 @@ class DeanApproveEventAPIView(APIView):
 class NewBudgetAPIView(APIView):
     def put(self, request):
         request.data["status"] = "FIC"
+        club = Club_info.objects.get(club_name=request.data['club'])
+        if club.category == "Cultural":
+            request.data['status'] = 'COUNSELLOR'
+        else:
+            request.data['status'] = 'FIC'
         serializer = BudgetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1213,25 +1229,16 @@ class RejectEventAPIView(APIView):
         event = get_object_or_404(Event_info, id=event_id)
         event.status = "REJECT"
         event.save()
-        return Response(
-            {"message": "Event status changed to 'Rejected'."},
-            status=status.HTTP_200_OK,
-        )
-
-
+        return Response({"message": "Event status changed to 'Rejected'."}, status=status.HTTP_200_OK)
 class AchievementsAPIView(APIView):
     def post(self, request):
-        club_name = request.data.get("club_name")
-        achievements = Achievements.objects.filter(club_name=club_name)
+        club_name = request.data.get('club_name') 
+        achievements = Achievements.objects.filter(club_name=club_name) 
         if not achievements.exists():
-            return Response(
-                {"message": "No achievements found for this club."}, status=404
-            )
+            return Response({"message": "No achievements found for this club."}, status=404)
 
         serializer = AchievementsSerializer(achievements, many=True)
         return Response(serializer.data, status=200)
-
-
 class AddAchievementAPIView(APIView):
     def post(self, request):
         serializer = AchievementsSerializer(data=request.data)
@@ -1253,98 +1260,64 @@ class CreateBudgetCommentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class CreateEventCommentAPIView(APIView):
     def post(self, request):
         data = request.data.copy()
-        data["comment_date"] = timezone.now().date()
-        data["comment_time"] = timezone.now().time()
-
+        data['comment_date'] = timezone.now().date()
+        data['comment_time'] = timezone.now().time()
+        
         serializer = Event_CommentsSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class ListBudgetCommentsAPIView(APIView):
     def post(self, request):
-        budget_id = request.data.get("budget_id")
+        budget_id = request.data.get('budget_id')
         if not budget_id:
-            return Response(
-                {"error": "Budget ID is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        comments = Budget_Comments.objects.filter(budget_id=budget_id).order_by(
-            "comment_date", "comment_time"
-        )
+            return Response({"error": "Budget ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comments = Budget_Comments.objects.filter(budget_id=budget_id).order_by('comment_date', 'comment_time')
         serializer = Budget_CommentsSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class ListEventCommentsAPIView(APIView):
     def post(self, request):
-        event_id = request.data.get("event_id")
+        event_id = request.data.get('event_id')
         if not event_id:
-            return Response(
-                {"error": "Event ID is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        comments = Event_Comments.objects.filter(event_id=event_id).order_by(
-            "comment_date", "comment_time"
-        )
+            return Response({"error": "Event ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comments = Event_Comments.objects.filter(event_id=event_id).order_by('comment_date', 'comment_time')
         serializer = Event_CommentsSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class RejectEventAPIView(APIView):
     def put(self, request):
-        event_id = request.data.get("id")
+        event_id = request.data.get('id')
         event = get_object_or_404(Event_info, id=event_id)
-        event.status = "REJECT"
+        event.status = 'REJECT'
         event.save()
-        return Response(
-            {"message": "Event status changed to 'Rejected'."},
-            status=status.HTTP_200_OK,
-        )
-
-
+        return Response({"message": "Event status changed to 'Rejected'."}, status=status.HTTP_200_OK)
 class ModifyEventAPIView(APIView):
     def put(self, request):
-        event_id = request.data.get("id")
+        event_id = request.data.get('id')
         event = get_object_or_404(Event_info, id=event_id)
-        event.status = "COORDINATOR"
+        event.status = 'COORDINATOR'
         event.save()
-        return Response(
-            {"message": "Event status changed to 'Coordinator review'."},
-            status=status.HTTP_200_OK,
-        )
-
-
+        return Response({"message": "Event status changed to 'Coordinator review'."}, status=status.HTTP_200_OK)
 class ModifyBudgetAPIView(APIView):
     def put(self, request):
-        budget_id = request.data.get("id")
+        budget_id = request.data.get('id')
         budget = get_object_or_404(Budget, id=budget_id)
-        budget.status = "COORDINATOR"
+        budget.status = 'COORDINATOR'
         budget.save()
-        return Response(
-            {"message": "Budget status changed to 'Coordinator Review'."},
-            status=status.HTTP_200_OK,
-        )
-
-
+        return Response({"message": "Budget status changed to 'Coordinator Review'."}, status=status.HTTP_200_OK)
+    
 class RejectMemberAPIView(APIView):
     def put(self, request):
-        member_id = request.data.get("id")
+        member_id = request.data.get('id')
         member = get_object_or_404(Club_member, id=member_id)
-        member.status = "rejected"
+        member.status = 'rejected'
         member.save()
-        return Response(
-            {"message": "Member status changed to 'rejected'."},
-            status=status.HTTP_200_OK,
-        )
-
-
+        return Response({"message": "Member status changed to 'rejected'."}, status=status.HTTP_200_OK)
 class AddClubPositionAPIView(APIView):
     def post(self, request):
         serializer = ClubPositionSerializer(data=request.data)
@@ -1352,16 +1325,12 @@ class AddClubPositionAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class ListClubPositionAPIView(APIView):
     def post(self, request):
-        name = request.data.get("name")
+        name=request.data.get('name')
         positions = ClubPosition.objects.filter(name=name)
         serializer = ClubPositionSerializer(positions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class UpdateEventAPIView(APIView):
     def put(self, request):
         try:
@@ -1389,8 +1358,7 @@ class UpdateEventAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+    
 class UpdateBudgetAPIView(APIView):
     def put(self, request):
         try:
@@ -1453,3 +1421,256 @@ class FreeMembersForClubAPIView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class CoordinatorEventsAPIView(APIView):
+    """
+    API View to fetch events for clubs where the given person (by roll number) is a coordinator.
+    Filters by accepted events and those in the current month.
+    """
+
+    def post(self, request):
+        # Extract roll number from the request data
+        roll_number = request.data.get("roll_number")
+        if not roll_number:
+            return Response(
+                {"error": "Roll number is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            clubs = Club_info.objects.filter(co_ordinator=roll_number)
+            # Get the current month and year
+            current_month = datetime.datetime.now().month
+            current_year = datetime.datetime.now().year
+
+            # Fetch events associated with those clubs, with status 'accepted' and within the same month
+            events = Event_info.objects.filter(
+                club__in=clubs,
+                # status="Accepted",  # Replace with your actual status choice
+                # start_date__year=current_year,
+                # start_date__month=current_month,
+            )
+
+            # Serialize and return the events
+            serializer = event_infoserializer(events, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Student.DoesNotExist:
+            return Response(
+                {"error": "Student not found with the given roll number."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+class EventInputAPIView(APIView):
+    def get(self, request):
+        """
+        Returns a list of all Event_info objects (dropdown options).
+        """
+        events = Event_info.objects.all()
+        events_data = [{"id": event.id, "name": event.event_name} for event in events]  # Adjust fields as needed
+        return Response(events_data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Creates a new EventInput instance.
+        """
+        # print(request.data["event"])
+        # request.data["images"]=None
+        print(request.data)
+        serializer = EventInputSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#helper
+def add_page_decorations(canvas, doc):
+    canvas.saveState()
+    page_num = canvas.getPageNumber()
+    canvas.setFont('Helvetica', 10)
+    canvas.drawCentredString(letter[0] / 2.0, 20, f"Page {page_num}")
+    canvas.restoreState()
+
+class NewsletterPDFAPIView(APIView):
+    def get(self, request):
+        # Determine timeframe filter based on query parameter
+        timeframe = request.GET.get('timeframe', '').lower()
+        now = timezone.now()
+        if timeframe == 'weekly':
+            time_threshold = now - timedelta(weeks=1)
+        elif timeframe == 'monthly':
+            time_threshold = now - timedelta(days=30)
+        elif timeframe == '6 months':
+            time_threshold = now - timedelta(days=182)  # Approximation for half a year
+        else:
+            time_threshold = None
+        print(time_threshold)
+        # Fetch all unique clubs
+        clubs = Event_info.objects.values_list('club', flat=True).distinct()
+        has_events = False
+        for club in clubs:
+            club_events = EventInput.objects.filter(event__club=club)
+            if time_threshold:
+                club_events = club_events.filter(event__end_date__range=(time_threshold, now))
+            if club_events.exists():
+                has_events = True
+                break
+
+        if not has_events:
+            return Response({"message": "No events found for the selected timeframe."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create an in-memory file
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+        # Get the default style sheet and create custom styles
+        styles = getSampleStyleSheet()
+        story = []
+
+        # --- Banner Section ---
+        banner_path = "path/to/your/banner.jpg"  # Update this path to your banner image
+        try:
+            banner = Image(banner_path, width=letter[0], height=150)
+            story.append(banner)
+        except Exception:
+            pass
+
+        story.append(Spacer(1, 20))
+
+        # Catchy Title and Tagline
+        title_style = ParagraphStyle(
+            name='TitleStyle',
+            parent=styles['Title'],
+            fontName='Helvetica-Bold',
+            fontSize=26,
+            leading=30,
+            alignment=1,
+            textColor=colors.darkblue
+        )
+        tagline_style = ParagraphStyle(
+            name='Tagline',
+            parent=styles['BodyText'],
+            fontName='Helvetica-Oblique',
+            fontSize=14,
+            leading=18,
+            alignment=1,
+            textColor=colors.darkgray
+        )
+
+        story.append(Paragraph("IIITDM Jabalpur Gymkhana Newsletter", title_style))
+        story.append(Spacer(1, 10))
+        story.append(Paragraph("Stay tuned for the latest happenings and exclusive updates!", tagline_style))
+        story.append(Spacer(1, 30))
+
+        # Introductory paragraph
+        intro_style = ParagraphStyle(
+            name='Intro',
+            parent=styles['BodyText'],
+            fontSize=12,
+            leading=16,
+            alignment=1,
+            textColor=colors.black
+        )
+        intro_text = (
+            "Welcome to our monthly newsletter where we bring you the most exciting events from various clubs. "
+            "Dive into details, get inspired, and mark your calendars for a memorable experience!"
+        )
+        story.append(Paragraph(intro_text, intro_style))
+        story.append(Spacer(1, 40))
+
+        # --- Newsletter Content ---
+        club_header_style = ParagraphStyle(
+            name='ClubHeader',
+            fontName='Helvetica-Bold',
+            fontSize=18,
+            leading=22,
+            textColor=colors.darkred,
+            backColor=colors.whitesmoke,
+            spaceAfter=10,
+            borderPadding=(5, 5, 5, 5)
+        )
+
+        event_heading_style = ParagraphStyle(
+            name='EventHeading',
+            fontName='Helvetica-Bold',
+            fontSize=14,
+            leading=18,
+            textColor=colors.darkgreen
+        )
+
+        body_text_style = ParagraphStyle(
+            name='BodyText',
+            parent=styles['BodyText'],
+            fontSize=12,
+            leading=15,
+            textColor=colors.black
+        )
+
+        italic_style = ParagraphStyle(
+            name='Italic',
+            parent=styles['BodyText'],
+            fontName='Helvetica-Oblique',
+            fontSize=12,
+            leading=15,
+            textColor=colors.gray
+        )
+
+        for club in clubs:
+            story.append(Paragraph(f"Club: {club}", club_header_style))
+            story.append(Spacer(1, 20))
+
+            club_events = EventInput.objects.filter(event__club=club)
+            if time_threshold:
+                club_events = club_events.filter(event__end_date__range=(time_threshold, now))
+
+            for event in club_events:
+                event_info = event.event
+
+                story.append(HRFlowable(width="100%", thickness=1, color=colors.lightgrey))
+                story.append(Spacer(1, 10))
+                story.append(Paragraph("Event Details", event_heading_style))
+                story.append(Spacer(1, 10))
+
+                story.append(Paragraph(f"<b>Event:</b> {event_info.event_name}", body_text_style))
+                story.append(Spacer(1, 10))
+
+                story.append(Paragraph(
+                    f"<b>Start Date:</b> {event_info.start_date.strftime('%B %d, %Y')}",
+                    body_text_style))
+                story.append(Spacer(1, 10))
+
+                story.append(Paragraph(
+                    f"<b>Start Time:</b> {event_info.start_time.strftime('%I:%M %p')}",
+                    body_text_style))
+                story.append(Spacer(1, 10))
+
+                story.append(Paragraph(
+                    f"<b>Venue:</b> {event_info.venue}",
+                    body_text_style))
+                story.append(Spacer(1, 10))
+
+                story.append(Paragraph("<b>Description:</b>", event_heading_style))
+                story.append(Paragraph(f"{event.description}", body_text_style))
+                story.append(Spacer(1, 10))
+
+                if event.images:
+                    image_path = event.images.path
+                    try:
+                        story.append(Image(image_path, width=200, height=150))
+                    except Exception:
+                        story.append(Paragraph("[Image could not be loaded]", body_text_style))
+                else:
+                    story.append(Paragraph("[Image Placeholder]", body_text_style))
+                
+                story.append(Spacer(1, 10))
+                story.append(Paragraph(
+                    "Additional Information: Stay tuned for more updates and behind-the-scenes insights!",
+                    italic_style))
+                story.append(Spacer(1, 30))
+
+            story.append(PageBreak())
+
+        doc.build(story, onFirstPage=add_page_decorations, onLaterPages=add_page_decorations)
+        buffer.seek(0)
+
+        return FileResponse(buffer, as_attachment=True, filename="newsletter.pdf")
