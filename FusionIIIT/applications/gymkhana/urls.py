@@ -4,9 +4,10 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from applications.gymkhana.api.views import AddClub_BudgetAPIView, AddMemberToClub, ApproveEvent, ChangeHeadAPIView,   ClubMemberAPIView, ClubMemberApproveView, ClubMemberDeleteAPIView, CreateClubAPIView,  DeleteClubAPIView, DeleteClubBudgetAPIView,  EventDeleteAPIView, EventUpdateAPIView, SessionUpdateAPIView, UpdateClubBudgetAPIView, UpdateClubNameAPIView, UpdateClubStatusAPIView, UploadActivityCalendarAPIView,ModifyEventAPIView,ModifyBudgetAPIView,RejectEventAPIView,RejectBudgetAPIView,UpdateEventAPIView
 from applications.gymkhana.api.views import clubname,Club_Details,club_events,club_budgetinfo,Fest_Budget,club_report,Registraion_form
 from applications.gymkhana.api.views import session_details
-from applications.gymkhana.api.views import DeleteSessionsView, NewEventAPIView, NewSessionAPIView,Club_Detail,UpcomingEventsAPIView,PastEventsAPIView,Budgetinfo,AddClubAPI,NewBudgetAPIView,FICApproveBudgetAPIView,CounsellorApproveBudgetAPIView,DeanApproveBudgetAPIView,FICApproveEventAPIView,CounsellorApproveEventAPIView,DeanApproveEventAPIView,AddAchievementAPIView,AchievementsAPIView,CreateBudgetCommentAPIView,CreateEventCommentAPIView,ListBudgetCommentsAPIView,ListEventCommentsAPIView,AddClubPositionAPIView,ListClubPositionAPIView
+from applications.gymkhana.api.views import DeleteSessionsView, NewEventAPIView, NewSessionAPIView,Club_Detail,UpcomingEventsAPIView,PastEventsAPIView,Budgetinfo,AddClubAPI,NewBudgetAPIView,FICApproveBudgetAPIView,CounsellorApproveBudgetAPIView,DeanApproveBudgetAPIView,FICApproveEventAPIView,CounsellorApproveEventAPIView,DeanApproveEventAPIView,AddAchievementAPIView,AchievementsAPIView,CreateBudgetCommentAPIView,CreateEventCommentAPIView,ListBudgetCommentsAPIView,ListEventCommentsAPIView,AddClubPositionAPIView,ListClubPositionAPIView, CoordinatorEventsAPIView, EventInputAPIView, NewsletterPDFAPIView
 from . import views
 from rest_framework.authtoken.views import obtain_auth_token
+
 
 app_name = 'gymkhana'
 
@@ -160,4 +161,7 @@ urlpatterns = [
     url(r'^api/list_club_position/$',  ListClubPositionAPIView.as_view(), name='list club position'),
     url(r'^/api/new_event/$', UpdateEventAPIView.as_view(), name='update event'),
     url(r'^api/update_event/$',  UpdateEventAPIView.as_view(), name='update event'),
+    url(r'^api/coordinator_events/$', CoordinatorEventsAPIView.as_view(), name='coordinator_events'),
+    url(r'^api/coordinator_eventsinput/$', EventInputAPIView.as_view(), name='coordinator_eventsinput'),
+    url(r'^api/newsletter_pdf/$', NewsletterPDFAPIView.as_view(), name='newsletter_pdf'),
 ]
