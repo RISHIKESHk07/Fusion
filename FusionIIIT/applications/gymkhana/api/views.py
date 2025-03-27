@@ -1745,7 +1745,7 @@ class EventReportAPIView(APIView):
 
         try:
             event_instance = Event_info.objects.get(pk=event_id)
-            data["event"] = event_instance.pk  # Assigning the ID, not the instance
+            data["event"] = event_instance.pk
         except Event_info.DoesNotExist:
             return Response({"error": "Invalid event ID"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1753,7 +1753,6 @@ class EventReportAPIView(APIView):
         if serializer.is_valid():
             event_report = serializer.save()
 
-            # Generate PDF using ReportLab
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=letter)
             elements = []
@@ -1764,14 +1763,28 @@ class EventReportAPIView(APIView):
                 parent=styles["Title"],
                 fontSize=16,
                 textColor=colors.darkblue,
-                alignment=1,  # Center alignment
+                alignment=1,
             )
             normal_style = styles["Normal"]
 
             elements.append(Paragraph(f"Event Report for {event_instance.event_name}", title_style))
             elements.append(HRFlowable(width="100%", thickness=1, color=colors.black))
             elements.append(Spacer(1, 12))
-            elements.append(Paragraph(f"Club: {event_instance.club}", normal_style)) 
+
+
+
+            elements.append(Paragraph(f"Agenda: {event_report.agenda}", normal_style))
+            elements.append(Paragraph(f"Participants: {event_report.participants or 'N/A'}", normal_style))
+            elements.append(Paragraph(f"Winners: {event_report.winners or 'N/A'}", normal_style))
+            
+            if event_report.gallery_assets:
+                elements.append(Spacer(1, 12))
+                elements.append(Paragraph("Gallery Assets:", normal_style))
+                gallery_links = event_report.gallery_assets.split(',')
+                for link in gallery_links:
+                    elements.append(Paragraph(f'<a href="{link.strip()}" color="blue">{link.strip()}</a>', normal_style))
+
+
             elements.append(Paragraph(f"Venue: {event_report.venue}", normal_style))
             elements.append(Paragraph(f"Incharge: {event_report.incharge}", normal_style))
             elements.append(Paragraph(f"Start Date: {event_report.start_date}", normal_style))
@@ -1779,7 +1792,13 @@ class EventReportAPIView(APIView):
             elements.append(Paragraph(f"Start Time: {event_report.start_time}", normal_style))
             elements.append(Paragraph(f"End Time: {event_report.end_time}", normal_style))
             elements.append(Paragraph(f"Budget: {event_report.event_budget}", normal_style))
-            elements.append(Paragraph(f"Special Announcement: {event_report.special_announcement or 'None'}", normal_style))
+            elements.append(Spacer(1, 12))
+            elements.append(Paragraph(f"Club: {event_report.club_name}", normal_style))
+
+
+
+
+
             elements.append(PageBreak())
 
             doc.build(elements)

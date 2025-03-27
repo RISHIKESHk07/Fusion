@@ -676,15 +676,18 @@ class EventInput(models.Model):
     
 class EventReport(models.Model):
     event = models.ForeignKey(Event_info, on_delete=models.CASCADE)
-    description = models.TextField(null=True, blank=True)
+    agenda = models.TextField(null=False, blank=False)
+    participants = models.TextField(null=True, blank=True)
+    winners = models.TextField(null=True, blank=True)
+    gallery_assets = models.TextField(null=True, blank=True)
     venue = models.CharField(max_length=100, null=False)
     incharge = models.CharField(max_length=50, null=False)
     start_date = models.DateField(null=False)
     end_date = models.DateField(null=False)
     start_time = models.TimeField(null=False)
     end_time = models.TimeField(null=False)
-    event_budget = models.DecimalField(max_digits=10, decimal_places=2, null=False)
-    special_announcement = models.TextField(null=True, blank=True)
+    event_budget = models.DecimalField(max_digits=10, decimal_places=2, null=False, default=0.00)
+    club_name = models.CharField(max_length=100, default="BitByte")
     report_pdf = models.FileField(upload_to='event_reports/', null=True, blank=True)
 
     class Meta:
